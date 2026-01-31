@@ -860,7 +860,7 @@ const app = {
 
     setTimeout(() => {
         if (this.dom.quizList.children.length > 1) {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else {
             window.scrollTo(0, 0);
         }
@@ -987,11 +987,17 @@ const app = {
 
     this.dom.btnSubmit.style.display = 'none';
     
-    this.dom.btnNext.style.display = 'block';
-    this.dom.btnNext.style.opacity = '1';
+    // 自動遷移するため「次へ」ボタンは表示しない
+    // this.dom.btnNext.style.display = 'block';
+    // this.dom.btnNext.style.opacity = '1';
     
     const btns = document.querySelectorAll('.choice-btn');
     btns.forEach(b => b.disabled = true);
+
+    // 1.2秒後に自動で次の問題へ
+    setTimeout(() => {
+        this.nextQuestion();
+    }, 1200);
   },
 
   openJumpMenu: function() {
