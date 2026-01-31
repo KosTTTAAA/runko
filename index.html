@@ -631,6 +631,9 @@ const app = {
 
       playClick: function(silent = false) {
           if (this.context && this.clickBuffer) {
+              if (this.context.state === 'suspended') {
+                  this.context.resume();
+              }
               const source = this.context.createBufferSource();
               source.buffer = this.clickBuffer;
               const gainNode = this.context.createGain();
@@ -648,6 +651,9 @@ const app = {
       playStartVoice: function() {
           // Web Audio版
           if (this.context && this.startBuffer) {
+              if (this.context.state === 'suspended') {
+                  this.context.resume();
+              }
               const source = this.context.createBufferSource();
               source.buffer = this.startBuffer;
               source.connect(this.context.destination);
