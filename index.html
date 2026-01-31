@@ -161,6 +161,7 @@
       background: var(--card-bg); border-radius: 16px; padding: 20px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 30px;
       opacity: 0; transform: translateY(20px); animation: fadeInUp 0.2s forwards; position: relative;
+      scroll-margin-top: 120px; /* 自動スクロール時の位置調整 */
     }
     @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
     .card.past-question { opacity: 0.6; transition: opacity 0.5s; }
@@ -860,7 +861,7 @@ const app = {
 
     setTimeout(() => {
         if (this.dom.quizList.children.length > 1) {
-            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } else {
             window.scrollTo(0, 0);
         }
