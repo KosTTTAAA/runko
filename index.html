@@ -27,7 +27,7 @@
       color: var(--text);
       margin: 0;
       padding: 0;
-      -webkit-touch-callout: none; /* iOS長押しメニュー抑制 */
+      -webkit-touch-callout: none;
       user-select: none;
       -webkit-user-select: none;
       padding-bottom: env(safe-area-inset-bottom);
@@ -58,7 +58,7 @@
       justify-content: center;
       z-index: 10000;
       color: #333;
-      transition: opacity 0.4s ease-out, visibility 0.4s;
+      transition: opacity 0.5s ease-out, visibility 0.5s;
     }
     .title-logo {
       font-family: 'Zen Antique', serif;
@@ -207,7 +207,7 @@
       cursor: pointer; box-shadow: 0 4px 10px rgba(0,122,255,0.3); -webkit-tap-highlight-color: transparent;
     }
     .action-btn:disabled { background: #C7C7CC; box-shadow: none; }
-    .action-btn.next { background: var(--success); display: none; box-shadow: 0 4px 10px rgba(52,199,89,0.3); }
+    .action-btn.next { background: var(--success); display: none; box-shadow: 0 4px 10px rgba(52,199,89,0.3); opacity: 1 !important; }
 
     /* エフェクト */
     .overlay-effect {
@@ -267,7 +267,7 @@
 
 <div id="start-screen">
   <div class="title-logo">産業財産権</div>
-  <div class="version-text">Version 1.04</div>
+  <div class="version-text">Version 1.05</div>
   <button class="start-btn-large" id="btn-app-start">START</button>
 </div>
 
@@ -372,9 +372,8 @@
 
 <script>
 // ==========================================
-// データ定義 (v1.04)
+// データ定義 (v1.05)
 // ==========================================
-// 説明用のカッコは全角「（）」に、穴埋め用は半角「()」に統一。
 const defaultData = [
   [1,"選択肢","【1】 技術を保護するのが (特許) 法および(実用新案) 法であり、デザインを保護するのが(意匠) 法であり、絵画や音楽を保護するのが (著作権) 法であり、商品に表示する名前やマークを保護するのが(商標) 法である 。","特許,実用新案,意匠,著作権,商標","民法","発明法","標章法"],
   [1,"〇×","【2】 どの国にも権利の効力が及ぶ単一の特許権が存在する (×) ","×","","",""],
@@ -591,6 +590,7 @@ const app = {
               if (this.context && this.context.state === 'suspended') {
                   this.context.resume();
               }
+              // クリック音を一瞬だけ無音で再生してメモリに乗せる
               this.playClick(true);
           };
 
@@ -671,11 +671,15 @@ const app = {
       }
   },
 
+  // --- 初期化 ---
   init: function() {
-    this.audio.init();
+    // 起動時にエラーが出ても止まらないようにtry-catch
+    try {
+        this.audio.init();
+    } catch(e) { console.log(e); }
 
-    // v1.04のデータ読み込み (キーを変更してリセット)
-    const savedData = localStorage.getItem('chizai_app_data_v104_fixed'); 
+    // データ読み込み (v105)
+    const savedData = localStorage.getItem('chizai_app_data_v105_fixed'); 
     if (savedData) {
       try {
         this.questions = JSON.parse(savedData);
@@ -705,7 +709,7 @@ const app = {
   },
 
   saveToStorage: function() {
-    localStorage.setItem('chizai_app_data_v104_fixed', JSON.stringify(this.questions));
+    localStorage.setItem('chizai_app_data_v105_fixed', JSON.stringify(this.questions));
   },
   
   saveFlags: function() {
@@ -722,7 +726,7 @@ const app = {
 
   resetAllData: function() {
     if(confirm("【警告】\nすべての編集・修正データを削除し、初期状態に戻します。\nよろしいですか？")) {
-      localStorage.removeItem('chizai_app_data_v104_fixed'); 
+      localStorage.removeItem('chizai_app_data_v105_fixed'); 
       alert("データをリセットしました。");
       location.reload();
     }
