@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>産業財産権 学習アプリ (超低遅延オーディオ v9)</title>
+  <title>産業財産権 学習アプリ (高速オーディオ版 v10)</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,6 +34,8 @@
       padding-bottom: env(safe-area-inset-bottom);
       height: 100vh;
       overflow: hidden; 
+      /* タッチ反応速度を向上 */
+      touch-action: manipulation;
     }
     .app-container {
       max-width: 800px;
@@ -43,8 +45,6 @@
       flex-direction: column;
       position: relative;
       overflow-y: auto;
-      /* タッチ反応を良くする */
-      touch-action: manipulation;
     }
 
     /* --- スタート画面 --- */
@@ -62,16 +62,24 @@
     }
     .title-logo {
       font-family: 'Zen Antique', serif;
-      font-size: 52px;
+      font-size: 48px;
       margin-bottom: 50px;
       text-align: center;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.1em;
       background: linear-gradient(to bottom, #1a1a1a, #4a4a4a);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
       padding: 0 20px;
       line-height: 1.2;
+    }
+    .version-text {
+      font-size: 16px;
+      color: #888;
+      margin-top: -40px;
+      margin-bottom: 40px;
+      font-family: sans-serif;
+      letter-spacing: 0.05em;
     }
     .start-btn-large {
       font-family: 'Zen Antique', serif;
@@ -122,7 +130,7 @@
     
     h1 {
       margin: 0;
-      font-size: 20px;
+      font-size: 18px;
       color: var(--text);
       font-family: 'Zen Antique', serif;
       font-weight: bold;
@@ -221,7 +229,7 @@
       margin-bottom: 30px;
       opacity: 0;
       transform: translateY(20px);
-      animation: fadeInUp 0.5s forwards;
+      animation: fadeInUp 0.3s forwards; /* アニメーション高速化 */
       position: relative;
     }
     @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
@@ -280,7 +288,7 @@
     .choice-btn {
       background: white; border: 1px solid #C7C7CC; border-radius: 20px;
       padding: 12px 18px; font-size: 15px; font-weight: 600; color: #333;
-      cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.1s;
+      cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.05s;
       -webkit-tap-highlight-color: transparent;
     }
     .choice-btn:active { background: #E5E5EA; transform: scale(0.95); }
@@ -372,8 +380,9 @@
 <body>
 
 <div id="start-screen">
-  <div class="title-logo">産業財産権vol1.02</div>
-  <button class="start-btn-large" id="btn-app-start">START</button>
+  <div class="title-logo">産業財産権</div>
+  <div class="version-text">1.03</div>
+  <button class="start-btn-large" id="btn-app-start" onclick="app.enterApp()">START</button>
 </div>
 
 <div class="app-container" id="app" style="display:none;">
@@ -467,6 +476,9 @@ const defaultData = [
 
 const labels = ['a','b','c','d','e','f','g','h'];
 
+// ==========================================
+// アプリロジック
+// ==========================================
 const app = {
   questions: [],
   currentIndex: 0,
@@ -513,6 +525,7 @@ const app = {
           
           if(this.bgm) this.bgm.volume = 0.2; 
 
+          // Web Audio API
           try {
               window.AudioContext = window.AudioContext || window.webkitAudioContext;
               this.context = new AudioContext();
@@ -521,12 +534,12 @@ const app = {
               console.error("Web Audio API not supported", e);
           }
 
-          // スタートボタンを押した瞬間に、システム音を「無音再生」してバッファを叩き起こす
+          // タッチイベントで即時アンロック
           const unlock = () => {
               if (this.context && this.context.state === 'suspended') {
                   this.context.resume();
               }
-              // クリック音を一瞬だけ無音で再生してメモリに乗せる
+              // メモリにロード済みの音を一瞬無音再生
               this.playClick(true);
           };
 
@@ -577,12 +590,11 @@ const app = {
       },
 
       playClick: function(silent = false) {
-          // Web Audio APIで即時再生
           if (this.context && this.clickBuffer) {
               const source = this.context.createBufferSource();
               source.buffer = this.clickBuffer;
               const gainNode = this.context.createGain();
-              gainNode.gain.value = silent ? 0.001 : 1.0; // 無音か通常か
+              gainNode.gain.value = silent ? 0.001 : 1.0; 
               source.connect(gainNode);
               gainNode.connect(this.context.destination);
               source.start(0);
@@ -590,7 +602,7 @@ const app = {
               this.click.currentTime = 0;
               this.click.play();
           }
-          if(!silent) this.playBGM(); 
+          if(!silent) this.playBGM();
       },
 
       playStartVoice: function() {
@@ -605,7 +617,7 @@ const app = {
   init: function() {
     this.audio.init();
 
-    const savedData = localStorage.getItem('chizai_app_data_v9'); 
+    const savedData = localStorage.getItem('chizai_app_data_v9'); // v8 -> v9
     if (savedData) {
       try {
         this.questions = JSON.parse(savedData);
@@ -624,6 +636,8 @@ const app = {
 
   enterApp: function() {
     this.audio.playStartVoice();
+    this.audio.playBGM();
+    
     this.dom.startScreen.style.opacity = 0;
     setTimeout(() => {
       this.dom.startScreen.style.display = 'none';
@@ -633,7 +647,7 @@ const app = {
   },
 
   saveToStorage: function() {
-    localStorage.setItem('chizai_app_data_v9', JSON.stringify(this.questions));
+    localStorage.setItem('chizai_app_data_v9', JSON.stringify(this.questions)); // v8 -> v9
   },
   
   saveFlags: function() {
@@ -830,7 +844,7 @@ const app = {
       
       btn.addEventListener('touchstart', handleSelect, {passive: false});
       btn.onclick = (e) => {
-          if (e.pointerType !== 'touch') { // マウス用
+          if (e.pointerType !== 'touch') { 
               app.audio.playClick();
               app.selectChoice(word);
           }
@@ -906,7 +920,6 @@ const app = {
 
     this.dom.btnSubmit.style.display = 'none';
     
-    // 【修正】次の問題へボタンを強制表示
     this.dom.btnNext.style.display = 'block';
     this.dom.btnNext.style.opacity = '1';
     
@@ -914,7 +927,6 @@ const app = {
     btns.forEach(b => b.disabled = true);
   },
 
-  // --- ジャンプ機能 ---
   openJumpMenu: function() {
     const grid = this.dom.jumpGrid;
     grid.innerHTML = '';
@@ -942,7 +954,6 @@ const app = {
     this.renderNextQuestion();
   },
 
-  // --- 編集機能 ---
   startEditQuestion: function(rId, qIdx) {
     const area = document.getElementById(`q-text-area-${rId}`);
     const q = this.questions[qIdx]; 
@@ -1073,7 +1084,6 @@ const app = {
     }
   },
 
-  // --- 解答一覧・編集機能 ---
   showAnswerList: function() {
     this.audio.playClick();
     this.dom.menu.style.display = 'none';
