@@ -101,6 +101,7 @@
     header {
       background: var(--card-bg);
       padding: 10px 15px;
+      padding-top: calc(10px + env(safe-area-inset-top)); /* スマホのノッチ対策 */
       text-align: center;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
       position: sticky;
@@ -109,7 +110,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 50px;
+      height: auto;
+      min-height: 50px;
       flex-shrink: 0;
     }
     h1 {
