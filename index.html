@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>産業財産権 学習アプリ (音響対応版)</title>
+  <style>
+    :root {
+      --primary: #007AFF;
+      --success: #34C759;
+      --error: #FF3B30;
+      --warning: #FF9500;
+      --bg: #F2F2F7;
+      --card-bg: #FFFFFF;
+      --text: #1C1C1E;
+      --slot-bg: #E5E5EA;
+      --slot-active: #D1E1FF;
+      --slot-active-border: #007AFF;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      -webkit-touch-callout: none;
+      user-select: none;
+      -webkit-user-select: none;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .app-container {
+      max-width: 800px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* --- ヘッダー --- */
+    header {
+      background: var(--card-bg);
+      padding: 10px 15px;
+      text-align: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 50px;
+    }
+    
+    /* ジャンプボタン (左) */
+    .jump-btn {
+      font-size: 14px;
+      color: var(--primary);
+      background: none;
+      border: 1px solid var(--primary);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 60px;
+      display: none; /* デフォルト非表示 */
+    }
+    
+    /* タイトルスタイル変更 */
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      color: var(--text);
+      font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; /* 明朝体で高級感を */
+      font-weight: 800;
+      margin-right: 10px;
+    }
+
+    .home-btn {
+      font-size: 14px;
+      color: var(--primary);
+      background: none;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      width: 60px;
+      text-align: right;
+    }
+
+    .bgm-btn {
+      font-size: 12px;
+      color: #8E8E93;
+      background: none;
+      border: 1px solid #C7C7CC;
+      border-radius: 14px;
+      padding: 4px 10px;
+      cursor: pointer;
+      margin-right: 8px;
+    }
+    .bgm-btn.active {
+      color: var(--primary);
+      border-color: var(--primary);
+      background: rgba(0,122,255,0.1);
+    }
+
+    .progress-bar-container {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: #E5E5EA;
+    }
+    .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; }
+
+    /* --- メニュー --- */
+    #menu-view { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 20px; }
+    .section-title { font-size: 14px; color: #8E8E93; font-weight: bold; margin-bottom: 5px; margin-left: 5px; }
+    
+    .menu-btn {
+      background: var(--card-bg);
+      padding: 18px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--primary);
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    .menu-btn:active { transform: scale(0.98); background: #f0f0f0; }
+
+    .chapter-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .chapter-btn {
+      background: var(--card-bg);
+      padding: 15px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: bold;
+      color: #333;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      cursor: pointer;
+    }
+    .chapter-btn span { display: block; font-size: 12px; color: #8E8E93; margin-top: 4px; font-weight: normal; }
+    .chapter-btn:active { background: #E5E5EA; }
+
+    /* データリセットボタン */
+    .reset-data-btn {
+      margin-top: 30px;
+      font-size: 12px;
+      color: #999;
+      text-align: center;
+      padding: 10px;
+      background: none;
+      border: 1px dashed #ccc;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    /* --- クイズエリア (リスト形式) --- */
+    #quiz-list { 
+      display: none; 
+      padding: 15px; 
+      padding-bottom: 300px; 
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin-bottom: 30px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.5s forwards;
+      position: relative;
+    }
+    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+    .card.past-question {
+      opacity: 0.6; 
+      transition: opacity 0.5s;
+    }
+    .card.past-question:hover { opacity: 1; }
+
+    .q-meta { display: flex; justify-content: space-between; margin-bottom: 10px; }
+    .q-tag { background: #8E8E93; color: white; font-size: 11px; padding: 3px 8px; border-radius: 4px; }
+    
+    .q-text-area { font-size: 18px; line-height: 2.2; position: relative; }
+    
+    .edit-textarea {
+      width: 100%;
+      min-height: 150px;
+      font-size: 16px;
+      padding: 10px;
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-family: inherit;
+      margin-bottom: 10px;
+    }
+    .edit-controls { display: flex; gap: 10px; justify-content: flex-end; }
+    .save-btn { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .cancel-btn { background: #eee; color: #333; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+
+    .edit-q-btn {
+      display: inline-block;
+      margin-left: 10px;
+      color: #999;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid #ddd;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: #f9f9f9;
+    }
+    .edit-q-btn:hover { color: var(--primary); border-color: var(--primary); }
+
+    .slot {
+      display: inline-block;
+      min-width: 60px;
+      padding: 4px 12px;
+      margin: 4px;
+      border-bottom: 2px solid #C7C7CC;
+      background: var(--slot-bg);
+      border-radius: 8px;
+      color: var(--primary);
+      font-weight: bold;
+      text-align: center;
+      cursor: pointer;
+      vertical-align: middle;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .slot.active { background: var(--slot-active); border-bottom-color: var(--slot-active-border); transform: scale(1.1); box-shadow: 0 2px 8px rgba(0,122,255,0.2); }
+    .slot.filled { color: var(--text); background: #FFF; border: 1px solid #C7C7CC; }
+    .slot.correct { background: #d4f8d4; border-color: var(--success); color: #006400; }
+    .slot.wrong { background: #ffebeb; border-color: var(--error); color: var(--error); }
+    .slot.modified { background: #fff8e1; border-color: var(--warning); color: #d35400; }
+
+    .edit-ans-btn {
+      margin-left: 8px;
+      font-size: 11px;
+      background: #eee;
+      border: 1px solid #ccc;
+      color: #333;
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      vertical-align: middle;
+      font-weight: normal;
+    }
+
+    .choice-area {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: rgba(249, 249, 249, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(0,0,0,0.1);
+      padding: 15px;
+      padding-bottom: max(15px, env(safe-area-inset-bottom));
+      z-index: 200;
+      box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .choices-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 15px; }
+    .choice-btn {
+      background: white;
+      border: 1px solid #C7C7CC;
+      border-radius: 20px;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #333;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: transform 0.1s;
+    }
+    .choice-btn:active { background: #E5E5EA; transform: scale(0.95); }
+    .choice-btn:disabled { opacity: 0.5; cursor: default; }
+    .choice-btn.ox-btn { width: 80px; font-size: 20px; }
+
+    .action-btn {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 16px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,122,255,0.3);
+    }
+    .action-btn:disabled { background: #C7C7CC; box-shadow: none; }
+    .action-btn.next { background: var(--success); display: none; box-shadow: 0 4px 10px rgba(52,199,89,0.3); }
+
+    .overlay-effect {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .mark { font-size: 150px; font-weight: 900; transform: scale(0); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    .mark.circle { color: var(--success); border: 10px solid var(--success); border-radius: 50%; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; }
+    .mark.cross { color: var(--error); font-size: 250px; line-height: 0; }
+    .overlay-effect.show { opacity: 1; }
+    .overlay-effect.show .mark { transform: scale(1); }
+    .shake { animation: shake 0.4s; }
+    @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-10px); } 50% { transform: translateX(10px); } 75% { transform: translateX(-10px); } 100% { transform: translateX(0); } }
+    .confetti { position: absolute; width: 10px; height: 10px; background-color: #f00; animation: fall linear forwards; }
+    @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
+
+    /* --- ジャンプモーダル --- */
+    .jump-modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .jump-content {
+      background: white;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 400px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .jump-header {
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      color: #333;
+    }
+    .jump-close { font-size: 24px; color: #999; cursor: pointer; background: none; border: none; }
+    .jump-grid {
+      padding: 15px;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+    .jump-item {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f0f0f5;
+      color: #333;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .jump-item.current {
+      background: var(--primary);
+      color: white;
+    }
+    .jump-item:hover {
+      opacity: 0.8;
+    }
+
+    /* --- 解答一覧リスト --- */
+    .ans-list-item {
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .ans-meta { font-size: 12px; color: #888; margin-bottom: 5px; display: flex; justify-content: space-between; }
+    .ans-q-text { font-weight: bold; margin-bottom: 8px; font-size: 15px; white-space: pre-wrap; line-height: 1.6; }
+    .ans-correct { color: #006400; background: #d4f8d4; padding: 5px 10px; border-radius: 4px; font-size: 13px; display: inline-block; }
+    .ans-controls { margin-top: 10px; display: flex; gap: 10px; justify-content: flex-end; }
+    .small-btn { font-size: 12px; padding: 6px 12px; border-radius: 15px; border: 1px solid #ccc; background: #f9f9f9; cursor: pointer; color: #333; }
+    .small-btn.primary { background: var(--primary); color: white; border: none; }
+    .small-btn.edit { color: var(--primary); border-color: var(--primary); background: white; }
+
+    /* --- フラグ・見返しノート --- */
+    .flag-btn {
+      font-size: 24px;
+      color: #ccc;
+      cursor: pointer;
+      background: none;
+      border: none;
+      transition: color 0.2s;
+      padding: 0 5px;
+    }
+    .flag-btn.active { color: #FFD700; text-shadow: 0 0 2px orange; }
+    
+    .ans-nav {
+      position: sticky;
+      top: 50px;
+      background: rgba(255,255,255,0.95);
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      display: flex; gap: 8px; overflow-x: auto; white-space: nowrap;
+      margin: -15px -15px 15px -15px; z-index: 90;
+    }
+    .ans-nav-btn { padding: 6px 12px; background: #f0f0f5; border-radius: 15px; font-size: 12px; color: #333; text-decoration: none; border: 1px solid #ddd; }
+    .ans-chapter-header { margin-top: 30px; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 2px solid var(--primary); font-weight: bold; color: var(--primary); font-size: 16px; }
+
+    /* --- Perfect画面 --- */
+    #perfect-view {
+      display: none;
+      text-align: center;
+      padding-top: 80px;
+      animation: fadeInUp 0.5s;
+    }
+    .perfect-img {
+      width: 180px;
+      height: auto;
+      margin-bottom: 20px;
+    }
+    .perfect-text {
+      font-family: "Snell Roundhand", "Brush Script MT", cursive;
+      font-size: 48px;
+      background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: bold;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+      margin-bottom: 10px;
+    }
+
+    /* --- 編集フォーム用 --- */
+    .edit-label {
+      font-size: 12px;
+      color: #666;
+      margin-top: 8px;
+      margin-bottom: 4px;
+      display: block;
+      font-weight: bold;
+    }
+    .edit-input {
+      width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container" id="app">
+  <header>
+    <h1>産業財産権</h1>
+    <button class="jump-btn" id="jump-btn" onclick="app.openJumpMenu()">No.</button>
+    <div style="flex: 1;"></div>
+    <button class="bgm-btn active" id="bgm-btn" onclick="app.audio.toggleBGM()">BGM ON</button>
+    <button class="home-btn" onclick="app.backToHome()">ホーム</button>
+    <div class="progress-bar-container"><div class="progress-fill" id="progress-fill"></div></div>
+  </header>
+
+  <div id="menu-view">
+    <div>
+      <div class="section-title">総合・テスト</div>
+      <div class="menu-btn" onclick="app.start('ALL')" style="background:#007AFF; color:white;">全問演習スタート</div>
+      <div class="menu-btn" onclick="app.showAnswerList()" style="background:#34C759; color:white;">全問題・解答一覧 (編集・確認)</div>
+      <div class="menu-btn" onclick="app.start('TEST')">実力テスト (ランダム50問)</div>
+    </div>
+    <div>
+      <div class="section-title">演習コース (章別)</div>
+      <div class="chapter-grid">
+        <div class="chapter-btn" onclick="app.start('CH1')">演習 1<span>特許・総論</span></div>
+        <div class="chapter-btn" onclick="app.start('CH2')">演習 2<span>特許・出願</span></div>
+        <div class="chapter-btn" onclick="app.start('CH3')">演習 3<span>実用新案・侵害</span></div>
+        <div class="chapter-btn" onclick="app.start('CH4')">演習 4<span>意匠</span></div>
+        <div class="chapter-btn" onclick="app.start('CH5')">演習 5<span>商標</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-title">見返しノート (フラグ付き問題)</div>
+      <div class="chapter-grid">
+        <div class="chapter-btn" onclick="app.start('REVIEW_ALL')">全問復習</div>
+        <div class="chapter-btn" onclick="app.start('REVIEW_CH1')">演習 1<span>特許・総論</span></div>
+        <div class="chapter-btn" onclick="app.start('REVIEW_CH2')">演習 2<span>特許・出願</span></div>
+        <div class="chapter-btn" onclick="app.start('REVIEW_CH3')">演習 3<span>実用新案・侵害</span></div>
+        <div class="chapter-btn" onclick="app.start('REVIEW_CH4')">演習 4<span>意匠</span></div>
+        <div class="chapter-btn" onclick="app.start('REVIEW_CH5')">演習 5<span>商標</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-title">形式別</div>
+      <div class="chapter-grid">
+        <div class="chapter-btn" onclick="app.start('選択肢')">選択問題のみ</div>
+        <div class="chapter-btn" onclick="app.start('〇×')">〇×問題のみ</div>
+      </div>
+    </div>
+    
+    <button class="reset-data-btn" onclick="app.resetAllData()">⚠️ 編集データをリセットして初期状態に戻す</button>
+  </div>
+
+  <div id="quiz-list"></div>
+
+  <div id="perfect-view">
+    <img src="good.PNG" alt="Good Job" class="perfect-img">
+    <div class="perfect-text">PERFECT⭐️</div>
+    <p style="color:#8E8E93; font-size:14px;">見返しノートの問題はありません</p>
+  </div>
+
+  <div id="answer-list-view" style="display:none; padding:15px; padding-bottom:100px;">
+    <div class="ans-nav">
+      <a href="#ans-chap-1" class="ans-nav-btn">演習1</a>
+      <a href="#ans-chap-2" class="ans-nav-btn">演習2</a>
+      <a href="#ans-chap-3" class="ans-nav-btn">演習3</a>
+      <a href="#ans-chap-4" class="ans-nav-btn">演習4</a>
+      <a href="#ans-chap-5" class="ans-nav-btn">演習5</a>
+    </div>
+    <h2 style="text-align:center; font-size:16px; color:#888; margin-bottom:20px;">問題・解答一覧 (全<span id="total-count"></span>問)</h2>
+    <div id="answer-list-container"></div>
+  </div>
+
+  <div class="choice-area" id="choice-area" style="display:none;">
+    <div class="choices-grid" id="choices-grid"></div>
+    <button class="action-btn" id="btn-submit" onclick="app.checkAnswer()">解答する</button>
+    <button class="action-btn next" id="btn-next" onclick="app.nextQuestion()">次の問題へ</button>
+  </div>
+
+  <div id="effect-overlay" class="overlay-effect"><div id="effect-mark" class="mark"></div></div>
+
+  <div id="jump-modal" class="jump-modal">
+    <div class="jump-content">
+      <div class="jump-header">
+        <span>問題を選択してジャンプ</span>
+        <button class="jump-close" onclick="app.closeJumpMenu()">×</button>
+      </div>
+      <div class="jump-grid" id="jump-grid"></div>
+    </div>
+  </div>
+
+  <audio id="bgm" loop preload="auto" autoplay>
+    <source src="そばにいるよ.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="se-click" preload="auto">
+    <source src="システム決定音_12.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="se-start">
+    <source src="hikakin-yarimashiyou.mp3" type="audio/mpeg">
+  </audio>
+
+</div>
+
+<script>
+// ==========================================
+// データ定義 (修正済み: v3)
+// ==========================================
+const defaultData = [
+    [1,"選択肢","【1】 技術を保護するのが (特許) 法および(実用新案) 法であり、デザインを保護するのが(意匠) 法であり、絵画や音楽を保護するのが (著作権) 法であり、商品に表示する名前やマークを保護するのが(商標) 法である 。","特許,実用新案,意匠,著作権,商標","民法","発明法","標章法"],[1,"〇×","【2】 どの国にも権利の効力が及ぶ単一の特許権が存在する (×) ","×","","",""],[1,"〇×","【3】 バリ条約は、特許のみに適用される条約である (×) ","×","","",""],[1,"〇×","【4】 特許協力条約(PCT)は、特許および実用新案のみに適用される条約である (○) ","○","","",""],[1,"選択肢","【5】 標章の国際登録に関する (マドリッド) 協定についての議定書(プロコトル)は、標章(商標)の国際登録を目的として作られたものである 。","マドリッド,プロコトル,商標","パリ","ハーグ",""],[1,"選択肢","【6】 意匠の国際登録に関する(ハーグ) 協定の(ジュネーブ) 改正協定は、複数国で意匠登録を行う際の手続きの簡素化を目的とした条約である 。","ハーグ,ジュネーブ","ベルヌ","ロンドン",""],[1,"選択肢","【7】 産業財産の保護において、審査主義と無審査主義があり、(特許)法、(意匠) 法および (商標) 法は審査主義が採用され、(実用新案)法は、無審査主義が採用されている 。","特許,意匠,商標,実用新案","行政法","著作権法",""],[1,"選択肢","【8】 日本では、産業財産権の発生において原則として(登録) 主義が採用され、例外的に、著作権は(無方式) 主義が採用される 。","登録,無方式","方式","出願",""],[1,"選択肢","【9】 特許法上の発明とは、(自然法則)を利用した (技術的) 思想の創作のうち(高度)をいう 。","自然法則,技術的,高度","科学的法則","学術的",""],[1,"〇×","【10】 永久機関は、特許法上の発明になることがある (×) 。","×","","",""],[1,"〇×","【11】 160kmの速度のフォークボールの投げ方は、特許法上の発明である(×) 。","×","","",""],[1,"〇×","【12】 単にインターネット上で物を販売する商売のやり方は特許法上の発明にならないので、それに付随するインターネット上で物を販売するためにサーバにインストールされたシステムも当然ながら特許法上の発明にならない (×) 。","×","","",""],[1,"〇×","【13】 数式そのものは特許法上の発明にならないので、顔認証のために作られた数式がインストールされた装置も数式そのものと同一視できるため、特許法上の発明にならない(×) 。","×","","",""],[1,"選択肢","【14】 特許法上の発明には、(物)の発明、(物の生産を伴う方法)の発明、(物の生産を伴わない方法)の発明の3つのカテゴリーがあり、コンピュータ・プログラムは、(物)の発明に含まれる 。","物,物の生産を伴う方法,物の生産を伴わない方法,物","発見","理論",""],[1,"選択肢","【15】 特許を受けるためには、特許法上の(発明)に該当すること、(産業)上利用できること、公然知られた発明でないという (新規性) 性を有すること、公然知られた発明から容易に考え出すことができないという (進歩) 性を有すること、などの特許要件を満たす必要がある 。","発明,産業,新規性,進歩","商業","独創性",""],[1,"〇×","【16】 人体にX線を投射して病気を治療する方法は特許にならないので、X線投射装置も人体にX線を投射するものであるから当然に特許にならない(×) 。","×","","",""],[1,"〇×","【17】 発明が外国で公表された場合、日本では公表されていないので、その発明は新規性を有する(×) 。","×","","",""],[1,"〇×","【18】 発明の内容をつい他人に話してしまっても、その他人と事前に秘密保持契約を結んでいれば、その発明は新規性を失わない(○) 。","○","","",""],[1,"〇×","【19】 発明を自社のホームページにアップロードしたが、閲覧者が0人であれば、誰もその発明の内容を知らないので、新規性を失わない(×) 。","×","","",""],[1,"〇×","【20】 A社は、発明の内容を10月22日の午前10時に公表し、B社は、その公表された発明の特許出願を10月22日の午前11時に行った場合、どちらも同じ日に行われたので、B社の特許出願の発明は新規性を失わない(×) 。","×","","",""],[1,"選択肢","【21】 特許を受ける権利を有する者の (意に反) してまたは (行為に起因) して新規性を失ったとしても、新規性を失った日から (1年) 以内に特許出願をすれば、新規性を失わなかったと見做され得る。ただし、その規定の適用を受けるには、規定を受けることができる発明であることを証明する書面を特許出願の日から (30日) 以内に提出する必要がある 。","意に反,行為に起因,1年,30日","承諾","2年","60日"],[1,"〇×","【22】 A社は、発明の内容を10月22日に機械学会で発表した後、その発表を聞いたB社は11月1日にA社の発表を内容とする特許出願を行った。その後、A社が発明の特許出願を11月30日に行った場合、新規性喪失の例外規定の適用により特許を受けることができる (×) 。","×","","",""],[1,"〇×","【23】 A社が発明の内容を10月22日に電気学会で発表した後、電気学会でその内容を聞いたB社は、その発明の内容は素晴らしいので、急いで製品化して発売した。その発売後にA社がその発明の特許出願の準備が整ったので、新規性喪失の例外規定を適用して特許出願を行った。A社の特許出願は新規性を喪失しないと見做されるので特許になる (×) 。","×","","",""],[1,"総合","【24】 「その発明の属する技術分野における通常の知識を有する者」が公知発明に基づいて容易に発明をすることができた場合、(進歩) 性がないとされる。「その発明の属する技術分野における通常の知識を有する者」とは、その発明の属する技術分野において30年程度研究してきた者でなくてもよく、1年程度研究してきた者であればよい (×) 。","進歩,×","新規","独創",""],[1,"選択肢","【25】 進歩性がない発明として、例えば、一般的に知られている発明品を単に (寄せ集めた) にすぎない発明や発明の構成要素の一つを他の公知発明に (置き換えた) にすぎない発明が挙げられる 。","寄せ集めた,置き換えた","改変した","削除した",""],[1,"選択肢","【26】 同一の発明について異なった日に2以上の特許出願があったときは、(最先の特許出願人)のみが特許を受けることができる 。","最先の特許出願人","最先の発明者","特許庁長官",""],[1,"〇×","【27】 発明Pについて10/23午前10時にA社から特許出願があった。一方、発明Pと同一の発明について10/23午後3時にB社から特許出願があった。この場合、特許出願した時刻が A社の方が早いので、当然、発明PについてA社のみが特許を受けることができる (×) 。","×","","",""],[1,"総合","【28】 同一の発明について同一の日に2つの特許出願があったときは、(協議)により定めた一方の特許出願人のみが特許を受けることができる。協議が成立しなかった場合は、早いもの勝ちの原理が適用され、特許出願した時刻が早い方の特許出願人が、優先して特許を受けることができる(×) 。","協議,×","抽選","早い時刻の出願",""],[1,"〇×","【29】 日本国に対する特許出願書類を特許庁に郵送した場合、その特許出願書類を特許庁が受理した日が特許出願した日になる(×) 。","×","","",""],[1,"〇×","【30】 PCT 国際特許出願書類を特許庁に郵送した場合、その特許出願書類を特許庁が受理した日が特許出願した日になる (○) 。","○","","",""],[2,"選択肢","【1】 特許を受ける権利は (自然人) のみが原始的に取得し、第三者に(移転)することはできるが、(質権)の目的とすることはできない。","自然人,移転,質権","法人","譲渡","留置権"],[2,"選択肢","【2】 会社の従業員が会社の仕事として研究・開発をした結果完成した発明を(職務) 発明といい、会社は職務発明について、(通常実施)権を有する。","職務,通常実施","業務","専用実施","特許"],[2,"選択肢","【3】 特許出願の際に特許庁に提出する書類には、出願人、発明者等を記載した(願書)、特許を受けようとする範囲を記載した(特許請求の範囲)、主として発明の詳細な説明を記載した(明細書)、発明の形状や外観等を記載した(図面)、発明の内容を要約した(要約書)がある。","願書,特許請求の範囲,明細書,図面,要約書","意見書","補正書",""],[2,"総合","【4】 通常、特許出願の日から(1)年(6) 月経過後に、(公開特許公報)が発行されて出願内容が公開される。特許出願から1年6月経過前に、出願内容が公開されることはない。(×) ","1,6,公開特許公報,×",2,3,"特許公報"],[2,"選択肢","【5】 特許出願について特許要件を満たすか否かの実体審査を受けるためには、特許出願の日から(3)年以内に特許庁に(出願審査の請求)をしなければならない。","3,出願審査の請求",1,5,""],[2,"選択肢","【6】 特許出願がされると、まず、(特許庁長官)により方式審査が行われる。明細書が添付されていない場合、手続きの(補完)が命ぜられ、手続き補完書を提出した日が出願日として認定される。一方、明細書が所定の様式に従って作成されていないために明細書の記載に不備がある場合、手続きの (補正) が命ぜられ、手続き補正書を提出して明細書の不備を解消することができる。","特許庁長官,補完,補正","審査官","訂正",""],[2,"選択肢","【7】 上記【6】において、方式審査の結果、何も命ぜられることなく、いきなり特許出願が却下された場合、(行政不服審査法)に基づく異議申立てをして争うことができる。","行政不服審査法","特許法","民事訴訟法",""],[2,"選択肢","【8】 上記【7】の結果に、さらに、不服がある場合、(東京地方裁判所)に訴えを提起することができる。","東京地方裁判所","知財高等裁判所","最高裁判所",""],[2,"選択肢","【9】 特許出願の実体審査は、(審査官)によって行われ、その発明が特許要件を満たさないと判断された場合は、出願人に対して (拒絶理由通知 or 拒絶理由) が通知される。","審査官,拒絶理由通知 or 拒絶理由","審判官","拒絶査定",""],[2,"選択肢","【10】 上記 【9】の (拒絶理由通知)が通知された出願人は、審査官の認定・判断の誤り等を指摘する (意見) 書、および、特許出願の書類内容を修正する (補正) 書を提出することができる。","拒絶理由通知,意見,補正","理由書","訂正",""],[2,"選択肢","【11】 上記【10】の結果、拒絶理由が解消したときは(特許) 査定がされ、特許査定の謄本の送達日から(30)以内に(特許料) を納付することにより、特許権が設定登録される。","特許,30,特許料","拒絶",14,"登録料"],[2,"選択肢","【12】 上記【11】の反論の結果、拒絶理由が解消しなかったときは (拒絶) 査定がされ、拒絶査定の謄本の送達の日から (3月) 以内に (拒絶査定不服審判) の請求をすることにより、更に特許権の成立に向けた手続きを継続することができる。","拒絶,3月,拒絶査定不服審判","特許","30日",""],[2,"〇×","【13】 特許査定の直後に納付する特許料は、1年分でも2年分でも特許出願人が好きなだけ納めればよい。(×) ","×","","",""],[2,"〇×","【14】 特許権が発生すると特許証が発行されるが、特許証を無くすと特許権を主張することができないので、特許証は大切に保管する必要がある。(×) ","×","","",""],[2,"選択肢","【15】 会社規則で何ら定めがない場合、職務発明の特許を受ける権利は、(従業者 or 従業員)に帰属することが原則であるが、職務発明の特許を受ける権利は会社が有すると会社規則で定められているときは、特許を受ける権利は、(会社)に帰属する。","従業者 or 従業員,会社","発明者","国",""],[2,"〇×","【16】 職務発明において従業員が特許を取得した場合、会社は、従業員の許可を受けなければ、特許に関する発明品を製造することができない。(×) ","×","","",""],[2,"〇×","【17】 職務発明において従業員が会社に特許を受ける権利を譲渡した場合、経済上の利益を受ける権利を有するが、経済上の利益は、通常、金銭の事を指すので、従業員が課長に昇進することは含まれない。(×) ","×","","",""],[2,"〇×","【18】 学校のサークルであるロボット同好会の全員で発明を完成させたので、特許出願をしようということになった。このとき、特許出願の名義人の表示は、争いをなくすため、ロボット同好会とする方が好ましい。(×) ","×","","",""],[2,"〇×","【19】 特許出願において、図面は絶対に必要であるが、要約書は必ずしも必要ではない。(×) ","×","","",""],[2,"選択肢","【20】 特許出願は外国語で記載されていてもよいが、(1年4ヶ月)以内に日本語の翻訳文を提出しないと、特許出願は(取り下げられた)ものとみなされる。","1年4ヶ月,取り下げられた","1年6ヶ月","却下された",""],[2,"選択肢","【21】 特許出願したスマートフォンの内部回路Aに、新たな改良内部回路Bを追加することは原則できないが、特許出願した日から (1年) 以内に (国内優先権) 制度を利用すれば、新たな改良内部回路Bを追加することができる。一方、特許出願した内容に、スマートフォンのケース構造Cが含まれている場合、(分割出願)制度を利用すれば、ケース構造Cを内容とする新たな特許出願を行うことができる。","1年,国内優先権,分割出願","2年","出願変更",""],[2,"〇×","【22】 A社が行った特許出願に対する審査請求は、A社が行うことはできるが、ライバル会社のB社はA社の特許出願に対して審査請求を行うことができない。(×) ","×","","",""],[2,"総合","【23】 A社の特許出願の出願公開が行われると、A社に(補償金請求)権が発生する。A社は、A社の特許出願の内容を実施するB社に対して補償金請求権を行使するため、B社に(警告)を行った。しかし、B社がA社の特許出願の内容の実施を中止しなかった。A社の特許出願は審査中であったが、自社の利益が著しく損なわれることを防ぐため、A社は、(a) 権に基づいて裁判所に訴えを提起することができる。(×) ","補償金請求,警告,×","差止請求","通知",""],[2,"〇×","【24】 出願公開された会社Aの特許出願の内容を見た会社Bの従業員は、その内容と同じ文献を知っていたとしても審査官にその文献の存在を伝える方法はない(×) ","×","","",""],[2,"〇×","【25】 出願公開された会社Aの特許出願の内容を会社Bが実施していた場合、申請さえすれば、必ず、他の特許出願に優先して会社Aの特許出願が審査される (×) ","×","","",""],[2,"選択肢","【26】 審査の結果、最初の拒絶理由通知が来た場合、補正が認められているが、その補正において出願当初の特許出願の内容に対して (新規事項) を追加することは禁止される。その後、最後の拒絶理由通知が来た場合、補正が認められているが、その補正では(請求項の削除)、(特許請求の範囲の減縮) (誤記の訂正)、(明りょうでない記載の釈明)を目的としたものに限定される。","新規事項,請求項の削除,特許請求の範囲の減縮,誤記の訂正,明りょうでない記載の釈明","従来技術","背景技術","明細書訂正"],[2,"〇×","【27】 審査官が特許出願人に対して特許査定になった旨を、電話を使って口頭で伝えた場合、別途文書により通達しなくてもよい(×) ","×","","",""],[2,"〇×","【28】 特許料は、特許出願人のみが納めることができ、その他の人は納付することができない(×) ","×","","",""],[2,"〇×","【29】 特許出願を実用新案登録出願に変更することができる。一方、特許出願は技術的思想の創作でありデザインと関係がないので、特許出願を意匠登録出願に変更することはできない(×) ","×","","",""],[2,"〇×","【30】 特許出願の願書に特許出願人の氏名が記載されていないときであっても、その後に、特許出願人の氏名を追加すれば、特許出願をした日が特許出願日として認定される (○) ","○","","",""],[2,"選択肢","【31】 特許権の設定登録があった後に、(特許公報)の発行の日から (何人) も (6月) 以内に特許異議申立てを行うことができる","特許公報,何人,6月","特許公表","利害関係人","3月"],[3,"選択肢","【1】実用新案法上の考案とは、(物品) の (形状)、(構造)又は(組み合わせ)に係るものである。このため、(方法)の考案は、保護対象外である。","物品,形状,構造,組み合わせ,方法","物質","結合","機能"],[3,"選択肢","【2】特許権が設定登録されたときは、特許公報が発行され、(何人)もその発行の日から (6月)以内に(特許庁長官) に対して、(特許異議申し立て) をすることができる。","何人,6月,特許庁長官,特許異議申し立て","利害関係人","1年","審査官"],[3,"〇×","【3】実用新案を出願する際、図面を提出しなくてもよい場合がある。(×)","×","","",""],[3,"選択肢","【4】 実用新案では、新規性、進歩性等の (実体) 審査を経ないで権利が発生するが、出願の単一性を満たすか、公序良俗に違反するかの (基礎的要件) 審査は、行われる。","実体,基礎的要件","方式","予備","技術"],[3,"〇×","【5】上記【4】の(基礎的要件)審査は、審査官によって行われる。(×（特許庁長官）)","×","","",""],[3,"選択肢","【6】実用新案権の存続期間は、(出願)の日から (10) 年である。","出願,10","登録",20,15],[3,"選択肢","【7】 特許権が侵害された場合、特許権者は、民事上の救済として (差止請求) や (損害賠償) を請求することができる。差止請求では、侵害の行為を組成した物の(廃棄)、および侵害の行為に供した設備の (除去)を請求することができる。損害賠償では、(故意または過失)によって他人の権利を侵害した者は、これによって生じた(損害)を(賠償)する責任を負う。","差止請求,損害賠償,廃棄,除去,故意または過失,損害,賠償","謝罪広告","没収","差押","無過失","不当利益"],[3,"選択肢","【8】特許権者は、(業として) 特許発明の実施をする権利を(専有)する。","業として,専有","私的に","共有","放任"],[3,"〇×","【9】特許権者でない者が慈善事業のために特許発明を実施した場合、利益を目的としないから特許権侵害にならない。(×)","×","","",""],[3,"〇×","【10】中国で製造した特許製品を輸入する場合、製造は中国で行われたのであるから、特許権の侵害にならない。(×)","×","","",""],[3,"選択肢","【11】 特許権の存続期間は、原則として (特許出願)の日から (20) 年である。","特許出願,20","登録",10,15],[3,"選択肢","【12】特許発明の技術的範囲は、(特許請求の範囲)の記載に基づいて定められる。","特許請求の範囲","明細書","要約書","図面"],[3,"選択肢","【13】特許権者は、他人に特許発明を利用する権利を設定することができるが、そのうち、独占的な利用権を(専用実施権)と言い、独占的でない利用権を (通常実施権) と言う。","専用実施権,通常実施権","賃借権","所有権","独占権"],[3,"選択肢","【14】実用新案権者が(実用新案技術評価書)を提示せずに、第三者に対して権利行使をした後に、(無効) 審判により実用新案権が無効になった場合、原則として、実用新案権者に (損害賠償) 責任が生じる。一方、実用新案技術評価書を提示して権利行使をした場合、原則として、実用新案権者に損害賠償責任が生じない。","実用新案技術評価書,無効,損害賠償","鑑定書","警告書","謝罪"],[3,"〇×","【15】特許権侵害において裁判所に訴えを提起する場合、最初に知的財産高等裁判所に提起しなければならない。(×)","×","","",""],[3,"選択肢","【16】実用新案が登録されるための登録要件には、新規性、進歩性が含まれるが、(きわめて容易)に考案の創作ができたときには進歩性がないとされる。","きわめて容易","容易","単純","明白"],[3,"選択肢","【17】特許異議申立てにおいて、異議が認められ、特許を取り消すべき旨の決定がされた場合、特許権者は不服がある場合、(知的財産高等裁判所 または、 東京高等裁判所)にその取消しを求めて出訴することができる。","知的財産高等裁判所 または、 東京高等裁判所","東京地方裁判所","最高裁判所","特許庁"],[3,"〇×","【18】特許異議申立てにおいて、特許が取り消されなかった場合に、異議申し立て人は不服がある場合、裁判所に出訴することができる。(×)","×","","",""],[3,"〇×","【19】誰でも特許権を無効にする無効審判を請求することができる。(×)","×","","",""],[3,"選択肢","【20】特許に関する審判は、(3) 人または(5) 人の審判官の (合議体) で行われる。","3,5,合議体",1,"審査官","全員"],[3,"〇×","【21】実用新案の最初の登録料は、1年分でも2年分でも実用新案登録出願人が好きなだけ納めればよい。(×)","×","","",""],[3,"選択肢","【22】特許に関する審判での審決に不服がある場合、審決の謄本の送達の日から (30日)以内に(知的財産高等裁判所 または、 東京高等裁判所)へ審決の取り消しを求めて訴えを提起することができる。","30日,知的財産高等裁判所 または、 東京高等裁判所","60日","特許庁","東京高等裁判所"],[3,"選択肢","【23】実用新案では、新規性、進歩性等の(実体) 審査が行われないが、請求すれば、新規性、進歩性等を審査官が判断した鑑定的な資料である (実用新案技術評価書) を得ることができる。","実体,実用新案技術評価書","形式","報告書","公報"],[3,"〇×","【24】 特許発明がどのくらいの性能を発揮するのかの研究のため、大学の研究室で特許発明が製造された場合、その製造する行為は、特許権侵害に該当しない。(○)","○","","",""],[3,"〇×","【25】 実用新案の最初の登録料は、実用新案が登録になる際に納めればよい。(×)","×","","",""],[3,"選択肢","【26】特許料を収めることができる期間内に特許料を納付し忘れても、(６ヵ月)以内であれば、(割増し または、 倍額の割増し)の特許料の納付を行えば、特許権は回復する。","６ヵ月,割増し または、 倍額の割増し","1年","同額","3ヵ月"],[3,"〇×","【27】特許権者であるC社に無断でA社が製造した特許製品をB社が自社の販売店売り場に展示した場合、その特許製品を売ると特許製品の譲渡行為に該当して特許権侵害になるが、売る前なら特許製品の譲渡行為に該当しないので特許権の侵害にならない(×)","×","","",""],[3,"〇×","【28】特許権を有するAが死亡した。Aには相続人がいないので、特許権は国に帰属する。(×)","×","","",""],[3,"〇×","【29】A社は、ある電気製品を開発したが、その電気製品はB社の特許権を侵害するものであった。A社は、B社の特許権の存在を知らなかったため、その電気製品を積極的に製造・販売した。この場合、A社は、特許法196条 (侵害の罪)に該当し、刑事罰として1000万円以下の罰金を払わないといけない。(×)","×","","",""],[3,"〇×","【30】特許を受ける権利は、質権の目的とすることができないので、同様に、特許権も質権の目的とすることはできない。(×)","×","","",""],[3,"〇×","【31】栃木県のA社は、茨城県のB社が、A社の保有する特許権に抵触する製品を製造・販売していることに気付いた。そのことについてA社とB社は交渉したが、交渉決裂したので、A社は、宇都宮地方裁判所に訴えを起こして、勝訴した。(×)","×","","",""],[4,"選択肢","【1】意匠とは、(物品)の形状、(模様) 若しくは (色彩)又はこれらの結合であって、(視覚)を通じて美感を起こさせるものを言う。","物品,模様,色彩,視覚","物質","形状","触覚"],[4,"総合","【2】 意匠が登録されるための要件として、(工業上)利用できる意匠であることが要求されているが、(工業上)利用できる意匠とは、(工業的)な生産方法により同一の外形を有する物品を (反復) して大量に生産できることを言う。したがって、植物のような (天然物) そのものは、工業上利用できる意匠ではない。","工業上,工業上,工業的,反復,天然物","商業上","手作業","偶然","人工物"],[4,"選択肢","【3】 特許庁に出願した意匠が、日本国内または (外国) において公然知られた意匠である場合、または、上記公然知られた意匠に (類似) する意匠である場合には、(新規)性がないとされる。","外国,類似,新規","知人","同一","進歩"],[4,"選択肢","【4】意匠登録出願に対する補正は、意匠の内容を実質的に変更する (要旨変更) しない範囲で可能である。","要旨変更","形式変更","内容変更","全面変更"],[4,"選択肢","【5】 意匠の属する分野における通常の知識を有する者が日本国内又は外国において公然知られた(形状)、(模様) 若しくは(色彩)又はこれらの (結合) に基づいて (容易に) 意匠の創作をすることができたときは、その意匠について意匠登録を受けることができない。","形状,模様,色彩,結合,容易に","模倣","分解","困難に"],[4,"選択肢","【6】 意匠が類似するとは、(物品)が同一・類似であり、かつ、(形態)が同一・類似である場合を言う。","物品,形態","名称","構造","機能"],[4,"選択肢","【7】 意匠の一部を保護する制度を (部分意匠) 制度と言う。","部分意匠","部品意匠","要素意匠","分割意匠"],[4,"選択肢","【8】 自己の出願中の意匠又は登録意匠に類似する意匠について (同一人) に意匠登録を認める制度を (関連意匠) 制度と言う。","同一人,関連意匠","他人","類似意匠","派生型意匠"],[4,"選択肢","【9】 食器のセットのように、二以上の物品のセットを保護する制度を (組物の意匠) 制度と言う。","組物の意匠","セット意匠","集合意匠","複合意匠"],[4,"選択肢","【10】 意匠が登録されると、意匠 (公報) が発行されるが、(秘密意匠)の手続きをしていれば、(3)年以内の期間を指定して、意匠公報に図面などが掲載されないようにすることができる。","公報,秘密意匠,3","証書","公表",1],[4,"選択肢","【11】 意匠出願をするときには、正面図、背面図などの (六面) 図が必要とされるが、(写真) や (ひな形) や (見本)で代用することができる。","六面,写真,ひな形,見本","平面","図面","模型"],[4,"〇×","【12】特許権の発生には、1~3年分の登録料を一括に収めなければならないので、意匠権の発生も同様に、1~3年分の登録料を一括に収めなければならない。(×（1年分でもよい）)","×","","",""],[4,"選択肢","【13】部分意匠の類否については、その物品全体の形態の中での意匠登録を受けようとする部分の(位置)、(大きさ)、(範囲) が考慮されて判断される。","位置,大きさ,範囲","名称","重量","角度"],[4,"〇×","【14】特許出願は、審査請求をしなければ審査されないので、意匠登録出願も同様に、審査請求をしなければ審査されない。(×)","×","","",""],[4,"〇×","【15】意匠権は、登録意匠及びこれに類似する意匠を独占的に実施できる権利である。一方、特許権も特許発明及びこれに類似する特許発明を独占的に実施できる権利である。(×)","×","","",""],[4,"〇×","【16】特許出願は一定期間経過後に、出願公開されるが、意匠登録出願も同様に一定期間経過後に、出願公開される。(×)","×","","",""],[4,"選択肢","【17】日本では、(ハーグ)協定の(ジュネーブ) 改正協定に基づいて日本国特許庁または(WIPO国際事務局)へ意匠登録出願を国際出願することができる。","ハーグ,ジュネーブ,WIPO国際事務局","パリ","マドリッド","審判部"],[4,"〇×","【18】 意匠制度における保護対象は、市場で流通する動産なので、不動産である建物は意匠制度では保護されない。(×)","×","","",""],[4,"選択肢","【19】 意匠権の存続期間は、(出願) の日から (25)年である。","出願,25","登録",20,10],[4,"〇×","【20】実用新案登録出願では、基礎的要件審査、及び方式審査が行われるので、意匠登録出願でも、同様に、基礎的要件審査、及び方式審査が行われる。(×)","×","","",""],[4,"〇×","【21】関連意匠制度において、基礎意匠が存続期間の満了により消滅した時は、関連意匠の意匠権も基礎意匠の意匠権とともに消滅する。(×)","×","","",""],[4,"〇×","【22】秘密意匠の手続きは、意匠登録出願をした以降であれば、いつでも行うことができる。(×（出願時、または、第一年分の登録料の納付時）)","×","","",""],[4,"〇×","【23】A社は、新たな外観を有するきれいなユリの品種の開発に成功し、大量に生産できる技術も確立した。このため、A社は、そのユリを意匠登録出願した結果、無事に登録された。(×)","×","","",""],[4,"〇×","【24】B社は、秘密にする期間として3年間を指定して秘密意匠の意匠登録出願を行った。ところが、秘密にする期間を更に1年間延長したいと考え、その旨の請求をして、秘密にする期間を更に1年間延長した。(×)","×","","",""],[4,"〇×","【25】 A社がデザインして販売する洋服に類似する洋服をB社がデザインして、その洋服について意匠登録出願を行った。この場合、A社が販売する洋服はB社が意匠登録出願した洋服と同一ではないので、B社の意匠登録出願は、A社が販売する洋服によって新規性を失うことはない。(×)","×","","",""],[4,"〇×","【26】 A社とB社から同日に同一・類似の意匠登録出願がされた場合、A社とB社の協議によって定めた出願人ののみが登録を受けることができるが、協議でも決まらない場合、くじ引きをして決めてもよい。(×)","×","","",""],[4,"〇×","【27】A社は、家具セットの組物の意匠権を有し、製造・販売している。B社は、A社の家具セットの一部である椅子Cと類似する椅子Dの製造・販売を開始した。この場合、A社が裁判を起こせば、B社は、A社の組物の意匠権を侵害するものとして差し止め請求され得る。(×)","×","","",""],[4,"〇×","【28】A社は、基礎意匠と基礎意匠に類似する関連意匠1及び関連意匠2を有している。A社は、関連意匠1及び関連意匠2が必要ないと判断したので、基礎意匠を自社に残しつつ、関連意匠1をB社に譲渡し、関連意匠2をC社に譲渡した。(×)","×","","",""],[5,"選択肢","【1】商標とは、人の知覚によって認識することができるもののうち、文字、(図形)、(記号) 若しくは (立体的形状) 若しくは(色彩)またはこれらの結合、(音) その他政令で定めるものであって、業として(商品)または(役務)に使用するものである。","図形,記号,立体的形状,色彩,音,商品,役務","匂い","提供","考案"],[5,"選択肢","【2】商標法において、商品又は役務の (普通名称)を普通に用いられる方法で表示する (標章) のみからなる商標は登録されないと規定されている。","普通名称,標章","固有名称","マーク","文字"],[5,"〇×","【3】商品「チョコレート」に対して商標「テレビ」として商標出願した場合、原則として、「テレビ」は、普通名称であるので登録されない。(×)","×","","",""],[5,"選択肢","【4】 商標法において、商品又は役務について (慣用) されている商標は登録されないと規定されている。","慣用","通用","流通","記載"],[5,"〇×","【5】商品「ケーキ」に対して商標「正宗」として商標出願した場合、原則として、「正宗」は清酒で慣用されている商標であるので登録されない。(×)","×","","",""],[5,"〇×","【6】商品「まぐろ」に対して商標「天然」の商標登録出願を行った場合、商標「天然」は、原則として、商品「まぐろ」が天然物であることを指すに過ぎないので登録されない。(○)","○","","",""],[5,"〇×","【7】商品「牛肉」に対して商標「アメリカ」の商標登録出願を行った場合、原則として、商標「アメリカ」は、商品「牛肉」の産地を指すに過ぎないので登録されない。(○)","○","","",""],[5,"選択肢","【8】 商標法において、ありふれた (氏) 又は (名称) を (普通) に用いられる方法で表示する (標章) のみからなる商標は、登録されないと規定されている。","氏,名称,普通,標章","苗字","一般的","図形"],[5,"〇×","【9】上記【8】 の規定があるため、人の名字および名前が商標登録されことはない。(×)","×","","",""],[5,"選択肢","【10】 商標法において、極めて(簡単)で、かつ、(ありふれた) 標章のみからなる商標は、登録されないと規定されている。","簡単,ありふれた","複雑","特異","緻密"],[5,"〇×","【11】 ローマ文字の二文字は、原則として、商標登録されない。(○)","○","","",""],[5,"〇×","【12】 日本又は外国の国旗は、商標登録されない。(○)","○","","",""],[5,"〇×","【13】地方公共団体が用いているマークを株式会社Aが商標登録出願しても、登録される場合がある。(○)","○","","",""],[5,"〇×","【14】他人の著名な芸名を、その芸名を有する本人は商標登録可能であるが、それ以外の者は商標登録されることはない。(×)","×","","",""],[5,"総合","【15】同じ商品分野において商標登録出願した商標と類似の商標が既に登録されている場合、商標登録されないが、商標が類似するかどうかの判断は、(外観)、(称呼)、(観念) の3つの観点から判断される。そして、外観、称呼、観念の3つの観点全てが類似すると判断された商標のみが類似する商標とされる。(×)","外観,称呼,観念,×","形状","品質","意味"],[5,"〇×","【16】他人の登録商標と同一の商標であっても、その他人の登録商標に係る商品とは別の商品について商標登録出願するものであれば、登録されることがある。(〇)","〇","","",""],[5,"選択肢","【17】他人の業務に係る商品又は役務と (混同) を生じるおそれのある商標は登録されないと規定されている。","混同","競合","類似","侵害"],[5,"〇×","【18】商品「電気機械器具」について、商標「バー・ソニー」が出願された場合、一部に有名な企業名「ソニー」が含まれていることを理由として商標登録されないことがある。(○)","○","","",""],[5,"選択肢","【19】 商品の(品質) 又は役務の (質) の (誤認) を生ずるおそれがある商標は登録されない。","品質,質,誤認","量","格","錯誤"],[5,"〇×","【20】同日に同一の特許出願があった場合、出願人の協議により決定した方の特許出願のみが登録になるが、協議が成立しない場合、いずれの出願人も特許権を取得することができないが、商標出願についても同様である。(×)","×","","",""],[5,"選択肢","【21】 商標権の存続期間は、原則として (登録) の日から (10) 年である。","登録,10","出願",20,25],[5,"〇×","【22】商標権は、存続期間が経過する際に更新手続きを行えば、存続期間は更新されるので、意匠権も同様に更新手続きを行って存続期間を延長することができる。(×)","×","","",""],[5,"〇×","【23】商標権は、2年毎に登録料を分割して収めることができる。(×)","×","","",""],[5,"〇×","【24】 商標出願の書類に指定商品の記載がない場合、商標出願をした日が認定されないが、指定商品の記載がおかしい場合は、商標出願をした日が認定される。(○)","○","","",""],[5,"〇×","【25】 栃木県のお菓子メーカーである株式会社Aが製造販売する商品名 「メルシー」のケーキは、有名になったが商標登録されていない。九州の株式会社Bがそれを知らずに「メルシー」を出願した場合、出願が早い方が勝ちの原則通り、商標登録される。(×)","×","","",""],[5,"選択肢","【26】商標は、(マドリッド) 協定の議定書に基づいて国際商標出願すると、(WIPO国際事務局)において国際登録される。","マドリッド,WIPO国際事務局","ハーグ","パリ","ジュネーブ"],[5,"〇×","【27】特許出願は、出願から所定期間経過後に出願公開されるが、商標は出願公開されない。(×)","×","","",""],[5,"〇×","【28】株式会社Aは、商品「パン」に対して「MOON」の商標権を有するので、株式会社Bが商品「ラーメン」に対して「MOON」の商標登録出願をしても登録にならない。(×)","×","","",""],[5,"選択肢","【29】商標は、継続して(3)年以上日本国内で使用されていない場合、第3者の請求により取り消されることがある。",3,1,5,10]
+];
+
+const labels = ['a','b','c','d','e','f','g','h'];
+
+// ==========================================
+// アプリロジック
+// ==========================================
+const app = {
+  questions: [],
+  currentIndex: 0,
+  currentSlots: [], 
+  activeSlotIndex: 0,
+  renderedCount: 0,
+  currentWordPool: [], // 選択肢問題用のプール
+  flags: {}, // フラグ管理 { index: true }
+
+  dom: {
+    menu: document.getElementById('menu-view'),
+    quizList: document.getElementById('quiz-list'),
+    choiceArea: document.getElementById('choice-area'),
+    perfectView: document.getElementById('perfect-view'),
+    answerListView: document.getElementById('answer-list-view'),
+    choicesGrid: document.getElementById('choices-grid'),
+    btnSubmit: document.getElementById('btn-submit'),
+    btnNext: document.getElementById('btn-next'),
+    effectOverlay: document.getElementById('effect-overlay'),
+    effectMark: document.getElementById('effect-mark'),
+    progress: document.getElementById('progress-fill'),
+    jumpBtn: document.getElementById('jump-btn'),
+    jumpModal: document.getElementById('jump-modal'),
+    jumpGrid: document.getElementById('jump-grid'),
+  },
+
+  // 音声関連機能の追加
+  audio: {
+      bgm: null,
+      click: null,
+      start: null,
+      isBgmOn: true,
+      context: null,
+      clickBuffer: null,
+
+      init: function() {
+          this.bgm = document.getElementById('bgm');
+          this.click = document.getElementById('se-click');
+          this.start = document.getElementById('se-start');
+          
+          // BGMの明示的なロード（再生開始を早めるため）
+          if(this.bgm) this.bgm.load();
+
+          // Web Audio APIの初期化（低遅延再生用）
+          try {
+              window.AudioContext = window.AudioContext || window.webkitAudioContext;
+              this.context = new AudioContext();
+              this.loadClickSound('システム決定音_12.mp3');
+          } catch(e) {
+              console.error("Web Audio API not supported", e);
+          }
+
+          // 音量設定
+          if(this.bgm) this.bgm.volume = 0.1; // BGMは控えめに
+          if(this.click) this.click.volume = 1.0;
+          if(this.start) this.start.volume = 1.0;
+          
+          // 起動後すぐに再生を試みる
+          this.playBGM();
+
+          // バックグラウンド移行時の制御（アプリを離れたら音を止める）
+          document.addEventListener('visibilitychange', () => {
+              if (document.hidden) {
+                  if(this.bgm) this.bgm.pause();
+                  if(this.context && this.context.state === 'running') this.context.suspend();
+              } else {
+                  // 戻ってきたときにBGM設定がONなら再開
+                  if(this.isBgmOn) this.playBGM();
+                  if(this.context && this.context.state === 'suspended') this.context.resume();
+              }
+          });
+      },
+      loadClickSound: function(url) {
+          fetch(url)
+            .then(response => response.arrayBuffer())
+            .then(arrayBuffer => this.context.decodeAudioData(arrayBuffer))
+            .then(audioBuffer => {
+                this.clickBuffer = audioBuffer;
+            })
+            .catch(e => console.error("Audio load error:", e));
+      },
+      toggleBGM: function() {
+          this.isBgmOn = !this.isBgmOn;
+          const btn = document.getElementById('bgm-btn');
+          if(this.isBgmOn) {
+              btn.innerText = "BGM ON";
+              btn.classList.add('active');
+              this.playBGM();
+          } else {
+              btn.innerText = "BGM OFF";
+              btn.classList.remove('active');
+              if(this.bgm) this.bgm.pause();
+          }
+      },
+      playBGM: function() {
+          if(this.isBgmOn && this.bgm && this.bgm.paused) {
+              this.bgm.play().catch(e => console.log("Audio autoplay blocked", e));
+          }
+      },
+      playClick: function() {
+          if (this.context && this.clickBuffer) {
+              if (this.context.state === 'suspended') {
+                  this.context.resume();
+              }
+              const source = this.context.createBufferSource();
+              source.buffer = this.clickBuffer;
+              source.connect(this.context.destination);
+              source.start(0);
+          } else if(this.click) {
+              this.click.currentTime = 0;
+              this.click.play();
+          }
+          this.playBGM();
+      },
+      playStart: function() {
+          if(this.start) {
+              this.start.currentTime = 0;
+              this.start.play();
+          }
+      }
+  },
+
+  // ★修正点: バージョンを v3 に変更して強制リロードさせる
+  init: function() {
+    this.audio.init(); // Audio初期化
+
+    const savedData = localStorage.getItem('chizai_app_data_v3'); // v2 -> v3
+    if (savedData) {
+      try {
+        this.questions = JSON.parse(savedData);
+        console.log("Loaded data from localStorage v3");
+      } catch(e) {
+        console.error("Data Load Error", e);
+        this.questions = JSON.parse(JSON.stringify(defaultData)); 
+      }
+      // フラグ読み込み
+      const savedFlags = localStorage.getItem('chizai_app_flags');
+      if (savedFlags) {
+        this.flags = JSON.parse(savedFlags);
+      }
+    } else {
+      // v3のデータがない場合（移行時など）、デフォルトを読み込む
+      this.questions = JSON.parse(JSON.stringify(defaultData)); 
+      this.saveToStorage(); // v3として保存
+    }
+  },
+
+  saveToStorage: function() {
+    localStorage.setItem('chizai_app_data_v3', JSON.stringify(this.questions)); // v2 -> v3
+  },
+
+  saveFlags: function() {
+    localStorage.setItem('chizai_app_flags', JSON.stringify(this.flags));
+  },
+
+  toggleFlag: function(qIdx, btnElement) {
+    this.flags[qIdx] = !this.flags[qIdx];
+    this.saveFlags();
+    if(btnElement) {
+      btnElement.classList.toggle('active', this.flags[qIdx]);
+    }
+  },
+
+  resetAllData: function() {
+    if(confirm("【警告】\nすべての編集・修正データを削除し、初期状態に戻します。\nよろしいですか？")) {
+      localStorage.removeItem('chizai_app_data_v3'); // v2 -> v3
+      alert("データをリセットしました。");
+      location.reload();
+    }
+  },
+
+  backToHome: function() {
+    if(confirm('演習を中断してメニューに戻りますか？')) {
+      this.resetView();
+    }
+  },
+
+  resetView: function() {
+    this.dom.quizList.style.display = 'none';
+    this.dom.choiceArea.style.display = 'none';
+    this.dom.perfectView.style.display = 'none';
+    this.dom.answerListView.style.display = 'none';
+    this.dom.menu.style.display = 'flex';
+    this.dom.progress.style.width = '0%';
+    this.dom.quizList.innerHTML = ''; 
+    
+    // ジャンプボタン非表示
+    this.dom.jumpBtn.style.display = 'none';
+
+    window.scrollTo(0,0);
+  },
+
+  start: function(mode, startIndex = 0) {
+    // 音声の再生分け (演習コースはHikakin、その他はシステム音)
+    if (mode.startsWith('CH') || mode.startsWith('REVIEW')) {
+        this.audio.playStart(); 
+    } else {
+        this.audio.playClick();
+    }
+
+    let targetQuestions = [];
+    if (mode === 'ALL') {
+      targetQuestions = this.questions; 
+    } else if (mode === 'TEST') {
+      targetQuestions = [...this.questions].sort(() => Math.random() - 0.5).slice(0, 50);
+    } else if (mode.startsWith('CH')) {
+      const chapterNum = parseInt(mode.replace('CH', ''));
+      targetQuestions = this.questions.filter(q => q[0] === chapterNum);
+    } else if (mode.startsWith('REVIEW')) {
+      // 見返しノートモード
+      const reviewMode = mode.replace('REVIEW_', '');
+      const flaggedQuestions = this.questions.filter((q, i) => this.flags[i]);
+      
+      if (reviewMode === 'ALL') {
+        targetQuestions = flaggedQuestions;
+      } else if (reviewMode.startsWith('CH')) {
+        const chapterNum = parseInt(reviewMode.replace('CH', ''));
+        targetQuestions = flaggedQuestions.filter(q => q[0] === chapterNum);
+      }
+      if(targetQuestions.length === 0) {
+          this.showPerfectView();
+          return;
+      }
+    } else {
+      targetQuestions = this.questions.filter(q => q[1] === mode);
+    }
+
+    if(targetQuestions.length === 0) return alert('該当する問題がありません');
+    
+    this.sessionQuestions = targetQuestions; 
+    this.currentIndex = startIndex;
+    this.renderedCount = 0;
+    this.showQuizView();
+    this.renderNextQuestion();
+  },
+
+  showQuizView: function() {
+    this.dom.menu.style.display = 'none';
+    this.dom.answerListView.style.display = 'none';
+    this.dom.perfectView.style.display = 'none';
+    this.dom.quizList.style.display = 'block';
+    this.dom.choiceArea.style.display = 'block';
+
+    // ジャンプボタン表示
+    this.dom.jumpBtn.style.display = 'block';
+  },
+
+  showPerfectView: function() {
+    this.resetView(); // 一旦リセット
+    this.dom.menu.style.display = 'none';
+    this.dom.perfectView.style.display = 'block';
+    
+    // ヘッダー調整
+    this.dom.jumpBtn.style.display = 'none';
+  },
+
+  renderCardContent: function(card, q, rId) {
+    const qIdx = this.questions.indexOf(q);
+    const qChapter = q[0];
+    const qType = q[1];
+    let qText = q[2];
+    const isFlagged = this.flags[qIdx] ? 'active' : '';
+    
+    let slotIdx = 0;
+    const renderedText = qText.replace(/\(([^)]+)\)/g, (match, content) => {
+      const label = labels[slotIdx];
+      const html = `<span class="slot" id="slot-${rId}-${slotIdx}" 
+        data-q-idx="${qIdx}" data-s-idx="${slotIdx}"
+        onclick="app.activateSlot(${slotIdx})">(${label})</span>`;
+      slotIdx++;
+      return html;
+    });
+
+    card.innerHTML = `
+      <div class="q-meta">
+        <span class="q-tag">演習 ${qChapter}</span>
+        <span class="q-tag" style="background:#333">${qType}</span>
+        <button class="flag-btn ${isFlagged}" onclick="app.toggleFlag(${qIdx}, this)">★</button>
+      </div>
+      <div class="q-text-area" id="q-text-area-${rId}">
+        ${renderedText}
+        <span class="edit-q-btn" onclick="app.startEditQuestion('${rId}', ${qIdx})">✎ 問題文を修正</span>
+      </div>
+    `;
+  },
+
+  renderNextQuestion: function() {
+    const q = this.sessionQuestions[this.currentIndex];
+    const rId = this.renderedCount;
+    
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = `card-${rId}`;
+    this.dom.quizList.appendChild(card);
+    
+    this.renderCardContent(card, q, rId);
+    
+    const match = q[2].match(/\(([^)]+)\)/g);
+    const slotCount = match ? match.length : 0;
+    this.currentSlots = new Array(slotCount).fill(null);
+
+    // スクロール調整 (ジャンプ直後は最上部へ)
+    setTimeout(() => {
+        if (this.dom.quizList.children.length > 1) {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        } else {
+            window.scrollTo(0, 0);
+        }
+    }, 100);
+
+    this.dom.btnSubmit.style.display = 'block';
+    this.dom.btnNext.style.display = 'none';
+    this.dom.btnSubmit.innerText = '解答する';
+    this.dom.btnSubmit.disabled = false;
+    
+    // 単語プールを生成（O/X以外の正解＋ダミー選択肢）
+    const correctList = String(q[3]).split(',').map(s=>s.trim());
+    const wrongs = [q[4], q[5], q[6]].filter(w => w !== "" && w !== undefined);
+    // 正解の中から「○」「×」を除外したものをプールに追加
+    const textCorrects = correctList.filter(s => s !== '○' && s !== '×');
+    this.currentWordPool = [...new Set([...textCorrects, ...wrongs])].sort(() => Math.random() - 0.5);
+
+    this.dom.progress.style.width = `${((this.currentIndex) / this.sessionQuestions.length) * 100}%`;
+
+    // 最初のスロットをアクティブにして、適切な選択肢を表示
+    this.activateSlot(0);
+  },
+
+  // スロットのアクティブ化（ここで選択肢を出し分ける）
+  activateSlot: function(index) {
+    if(document.getElementById(`card-${this.renderedCount}`).classList.contains('past-question')) return;
+    
+    this.activeSlotIndex = index;
+    const rId = this.renderedCount;
+    
+    // 現在の問題の正解リストを取得
+    const q = this.sessionQuestions[this.currentIndex];
+    const correctList = String(q[3]).split(',').map(s=>s.trim());
+    
+    // アクティブなスロットの正解を取得
+    const targetAns = correctList[index];
+    
+    // 正解が「○」または「×」なら○×ボタンを表示、それ以外なら単語プールを表示
+    const isOX = (targetAns === '○' || targetAns === '×');
+    this.renderChoices(isOX);
+
+    this.updateSlotStyles();
+  },
+
+  // 選択肢エリアの描画
+  renderChoices: function(isOX) {
+    this.dom.choicesGrid.innerHTML = '';
+    const pool = isOX ? ['○', '×'] : this.currentWordPool;
+
+    pool.forEach(word => {
+      const btn = document.createElement('button');
+      btn.className = isOX ? 'choice-btn ox-btn' : 'choice-btn'; // O/X用クラス付与
+      btn.innerText = word;
+      btn.onclick = () => this.selectChoice(word);
+      this.dom.choicesGrid.appendChild(btn);
+    });
+  },
+
+  selectChoice: function(word) {
+    if (this.activeSlotIndex >= this.currentSlots.length) return;
+    const rId = this.renderedCount;
+
+    this.currentSlots[this.activeSlotIndex] = word;
+    
+    const slotEl = document.getElementById(`slot-${rId}-${this.activeSlotIndex}`);
+    if(slotEl) {
+        slotEl.innerText = word;
+        slotEl.classList.add('filled');
+    }
+
+    // 次の空きスロットを探して移動
+    let nextIdx = -1;
+    for(let i=0; i<this.currentSlots.length; i++){
+      if(this.currentSlots[i] === null) {
+        nextIdx = i;
+        break;
+      }
+    }
+    
+    if(nextIdx !== -1) {
+      this.activateSlot(nextIdx); // 次のスロットへ移動し、選択肢も更新
+    }
+    this.updateSlotStyles();
+  },
+
+  updateSlotStyles: function() {
+    const rId = this.renderedCount;
+    this.currentSlots.forEach((_, i) => {
+      const el = document.getElementById(`slot-${rId}-${i}`);
+      if(el) {
+        if(i === this.activeSlotIndex) el.classList.add('active');
+        else el.classList.remove('active');
+      }
+    });
+  },
+
+  checkAnswer: function() {
+    const rId = this.renderedCount;
+    const q = this.sessionQuestions[this.currentIndex];
+    const correctList = String(q[3]).split(',').map(s=>s.trim());
+
+    if(this.currentSlots.includes(null)) {
+      alert("すべての空欄を埋めてください");
+      return;
+    }
+
+    let isAllCorrect = true;
+    this.currentSlots.forEach((ans, i) => {
+      const slot = document.getElementById(`slot-${rId}-${i}`);
+      const correctAns = correctList[i] || "";
+      
+      const editBtn = ` <span class="edit-ans-btn" onclick="app.editAnswerData('${slot.id}')">修正</span>`;
+
+      if(ans === correctAns) {
+        slot.classList.add('correct');
+      } else {
+        slot.classList.add('wrong');
+        slot.innerHTML = `<span style="text-decoration:line-through">${ans}</span> <span style="color:#006400; margin-left:4px;">${correctAns}</span>${editBtn}`;
+        isAllCorrect = false;
+      }
+    });
+
+    this.showEffect(isAllCorrect);
+
+    this.dom.btnSubmit.style.display = 'none';
+    this.dom.btnNext.style.display = 'block';
+    
+    const btns = document.querySelectorAll('.choice-btn');
+    btns.forEach(b => b.disabled = true);
+  },
+
+  // --- ジャンプ機能 ---
+  openJumpMenu: function() {
+    const grid = this.dom.jumpGrid;
+    grid.innerHTML = '';
+    
+    this.sessionQuestions.forEach((_, i) => {
+      const btn = document.createElement('div');
+      btn.className = 'jump-item';
+      if(i === this.currentIndex) btn.classList.add('current');
+      btn.innerText = i + 1;
+      btn.onclick = () => this.jumpTo(i);
+      grid.appendChild(btn);
+    });
+
+    this.dom.jumpModal.style.display = 'flex';
+  },
+
+  closeJumpMenu: function() {
+    this.dom.jumpModal.style.display = 'none';
+  },
+
+  jumpTo: function(index) {
+    this.closeJumpMenu();
+    if(index === this.currentIndex) return;
+
+    // 画面をリセットして指定の問題を表示
+    this.dom.quizList.innerHTML = '';
+    this.currentIndex = index;
+    // IDの衝突を避けるためrenderedCountは増やし続ける
+    this.renderedCount++; 
+    
+    this.renderNextQuestion();
+  },
+
+  // --- 編集機能 ---
+  startEditQuestion: function(rId, qIdx) {
+    const area = document.getElementById(`q-text-area-${rId}`);
+    const q = this.questions[qIdx]; // マスタデータから取得
+    const currentText = q[2];
+
+    area.innerHTML = `
+      <textarea class="edit-textarea" id="edit-q-input-${rId}">${currentText}</textarea>
+      <div class="edit-controls">
+        <button class="cancel-btn" onclick="app.cancelEditQuestion('${rId}', ${qIdx})">キャンセル</button>
+        <button class="save-btn" onclick="app.saveQuestion('${rId}', ${qIdx})">保存して反映</button>
+      </div>
+    `;
+  },
+
+  cancelEditQuestion: function(rId, qIdx) {
+    const card = document.getElementById(`card-${rId}`);
+    const q = this.questions[qIdx];
+    this.renderCardContent(card, q, rId);
+    this.restoreSlots(rId);
+  },
+
+  saveQuestion: function(rId, qIdx) {
+    const input = document.getElementById(`edit-q-input-${rId}`);
+    const newText = input.value;
+    if(!newText) return;
+
+    // データ更新＆保存
+    this.questions[qIdx][2] = newText;
+    this.saveToStorage(); // 保存
+
+    const q = this.questions[qIdx];
+    const card = document.getElementById(`card-${rId}`);
+    this.renderCardContent(card, q, rId);
+    
+    const match = newText.match(/\(([^)]+)\)/g);
+    const newSlotCount = match ? match.length : 0;
+    
+    if(newSlotCount !== this.currentSlots.length) {
+      this.currentSlots = new Array(newSlotCount).fill(null);
+      alert("問題文の穴埋め箇所が変更されたため、回答をリセットしました。");
+      
+      // 古いカードを削除して再描画 (重複防止)
+      if(card) card.remove();
+      
+      this.renderNextQuestion(); 
+    } else {
+      this.restoreSlots(rId);
+    }
+  },
+
+  restoreSlots: function(rId) {
+    this.currentSlots.forEach((val, i) => {
+      if(val) {
+        const slot = document.getElementById(`slot-${rId}-${i}`);
+        if(slot) {
+          slot.innerText = val;
+          slot.classList.add('filled');
+        }
+      }
+    });
+  },
+
+  editAnswerData: function(slotId) {
+      const slot = document.getElementById(slotId);
+      const qIdx = parseInt(slot.dataset.qIdx);
+      const sIdx = parseInt(slot.dataset.sIdx);
+      
+      const questionData = this.questions[qIdx];
+      let correctList = String(questionData[3]).split(',').map(s=>s.trim());
+      const oldCorrect = correctList[sIdx];
+      
+      const newCorrect = prompt("正しい答えを入力してください:", oldCorrect);
+      
+      if(newCorrect && newCorrect !== oldCorrect) {
+          correctList[sIdx] = newCorrect;
+          questionData[3] = correctList.join(',');
+          
+          this.saveToStorage(); // 保存
+
+          slot.classList.remove('wrong');
+          slot.classList.add('modified');
+          slot.innerHTML = `<span style="color:#d35400;">(訂正) ${newCorrect}</span>`;
+      }
+  },
+
+  showEffect: function(isCorrect) {
+    const overlay = this.dom.effectOverlay;
+    const mark = this.dom.effectMark;
+    const appContainer = document.querySelector('.app-container');
+
+    overlay.classList.add('show');
+    mark.className = isCorrect ? 'mark circle' : 'mark cross';
+    mark.innerText = isCorrect ? '○' : '×';
+
+    if (isCorrect) {
+      this.spawnConfetti();
+    } else {
+      appContainer.classList.add('shake');
+      setTimeout(() => appContainer.classList.remove('shake'), 500);
+    }
+
+    setTimeout(() => {
+      overlay.classList.remove('show');
+    }, 1200);
+  },
+
+  spawnConfetti: function() {
+    const colors = ['#ff0', '#f00', '#0f0', '#00f', '#f0f', '#0ff'];
+    for(let i=0; i<30; i++) {
+      const div = document.createElement('div');
+      div.className = 'confetti';
+      div.style.left = Math.random() * 100 + 'vw';
+      div.style.top = -10 + 'px';
+      div.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      div.style.animationDuration = (Math.random() * 2 + 1) + 's';
+      this.dom.effectOverlay.appendChild(div);
+      setTimeout(() => div.remove(), 3000);
+    }
+  },
+
+  nextQuestion: function() {
+    if (this.currentIndex < this.sessionQuestions.length - 1) {
+      const currentCard = document.getElementById(`card-${this.renderedCount}`);
+      currentCard.classList.add('past-question');
+      
+      this.currentIndex++;
+      this.renderedCount++;
+      this.renderNextQuestion();
+    } else {
+      alert("全問終了です！お疲れ様でした。");
+      this.resetView();
+    }
+  },
+
+  // --- 解答一覧・編集機能 ---
+  showAnswerList: function() {
+    this.audio.playClick();
+    this.dom.menu.style.display = 'none';
+    this.dom.quizList.style.display = 'none';
+    this.dom.choiceArea.style.display = 'none';
+    this.dom.perfectView.style.display = 'none';
+    this.dom.answerListView.style.display = 'block';
+    
+    // ジャンプボタン非表示
+    this.dom.jumpBtn.style.display = 'none';
+
+    this.renderAnswerList();
+    window.scrollTo(0,0);
+  },
+
+  renderAnswerList: function() {
+    const container = document.getElementById('answer-list-container');
+    document.getElementById('total-count').innerText = this.questions.length;
+    container.innerHTML = '';
+    
+    let currentChapter = -1;
+
+    this.questions.forEach((q, i) => {
+      // 演習ごとのヘッダー挿入
+      if (q[0] !== currentChapter) {
+        currentChapter = q[0];
+        const header = document.createElement('div');
+        header.className = 'ans-chapter-header';
+        header.id = `ans-chap-${currentChapter}`;
+        header.innerText = `演習 ${currentChapter}`;
+        container.appendChild(header);
+      }
+
+      const div = document.createElement('div');
+      div.className = 'ans-list-item';
+      div.id = `ans-row-${i}`;
+      
+      // q = [chapter, type, text, answerStr, ...]
+      div.innerHTML = `
+        <div class="ans-meta">
+          <span>No.${i+1} (演習${q[0]})</span>
+          <span>${q[1]}</span>
+        </div>
+        <div class="ans-q-text" id="ans-text-${i}">${q[2]}</div>
+        <div class="ans-correct">正解: ${q[3]}</div>
+        <div class="ans-controls">
+          <button class="small-btn edit" onclick="app.startEditListQuestion(${i})">編集</button>
+          <button class="small-btn primary" onclick="app.jumpFromList(${i})">この問題を演習</button>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  },
+
+  startEditListQuestion: function(index) {
+    const textDiv = document.getElementById(`ans-text-${index}`);
+    const currentText = this.questions[index][2];
+    const currentAns = this.questions[index][3];
+    const dummy1 = this.questions[index][4] || "";
+    const dummy2 = this.questions[index][5] || "";
+    const dummy3 = this.questions[index][6] || "";
+    
+    textDiv.innerHTML = `
+      <label class="edit-label">問題文:</label>
+      <textarea class="edit-textarea" id="list-edit-area-${index}">${currentText}</textarea>
+      
+      <label class="edit-label">正解 (カンマ区切りで複数可):</label>
+      <input type="text" class="edit-input" id="list-edit-ans-${index}" value="${currentAns}">
+      
+      <label class="edit-label">ダミー選択肢 (任意):</label>
+      <div style="display:flex; gap:5px;">
+        <input type="text" class="edit-input" id="list-edit-d1-${index}" value="${dummy1}" placeholder="ダミー1">
+        <input type="text" class="edit-input" id="list-edit-d2-${index}" value="${dummy2}" placeholder="ダミー2">
+        <input type="text" class="edit-input" id="list-edit-d3-${index}" value="${dummy3}" placeholder="ダミー3">
+      </div>
+
+      <div style="text-align:right; margin-top:10px;">
+        <button class="small-btn" onclick="app.renderAnswerList()">キャンセル</button>
+        <button class="small-btn primary" onclick="app.saveListQuestion(${index})">保存</button>
+      </div>
+    `;
+  },
+
+  saveListQuestion: function(index) {
+    const input = document.getElementById(`list-edit-area-${index}`);
+    const ansInput = document.getElementById(`list-edit-ans-${index}`);
+    const d1Input = document.getElementById(`list-edit-d1-${index}`);
+    const d2Input = document.getElementById(`list-edit-d2-${index}`);
+    const d3Input = document.getElementById(`list-edit-d3-${index}`);
+
+    const newText = input.value;
+    const newAns = ansInput.value;
+    if(!newText || !newAns) return alert("問題文と正解は必須です");
+
+    this.questions[index][2] = newText;
+    this.questions[index][3] = newAns;
+    this.questions[index][4] = d1Input.value;
+    this.questions[index][5] = d2Input.value;
+    this.questions[index][6] = d3Input.value;
+
+    this.saveToStorage();
+    this.renderAnswerList(); // 再描画して反映
+  },
+
+  jumpFromList: function(index) {
+    // 全問モードで、指定のインデックスから開始
+    this.start('ALL', index);
+  }
+};
+
+// 全画面クリックイベントで音を鳴らす処理を追加
+document.addEventListener('click', function(e) {
+    // ボタンらしい要素をクリックしたらシステム音を鳴らす
+    if(e.target.tagName === 'BUTTON' || 
+       e.target.classList.contains('slot') || 
+       e.target.classList.contains('jump-item') ||
+       e.target.classList.contains('choice-btn') ||
+       e.target.classList.contains('ans-nav-btn')) {
+        app.audio.playClick();
+    }
+});
+
+app.init();
+
+</script>
+</body>
+</html>
