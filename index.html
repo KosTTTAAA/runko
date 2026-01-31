@@ -120,6 +120,11 @@
       font-size: 14px; color: var(--primary); background: none; border: none;
       font-weight: bold; cursor: pointer; width: 60px; text-align: right;
     }
+    .back-btn {
+      font-size: 20px; color: var(--primary); background: none; border: none;
+      font-weight: bold; cursor: pointer; width: 40px; text-align: left;
+      padding: 0; margin-right: 5px; -webkit-tap-highlight-color: transparent;
+    }
     .jump-btn { border: 1px solid var(--primary); border-radius: 4px; padding: 4px 0; text-align: center; display: none; }
     
     .bgm-icon {
@@ -255,6 +260,7 @@
 
 <div class="app-container" id="app" style="display:none;">
   <header>
+    <button class="back-btn" id="back-btn" onclick="app.handleBack()" style="display:none;">＜</button>
     <h1>産業財産権</h1>
     <button class="jump-btn" id="jump-btn" onclick="app.openJumpMenu()">No.</button>
     <div style="flex:1"></div>
@@ -512,6 +518,7 @@ const app = {
   renderedCount: 0,
   currentWordPool: [], 
   flags: {}, 
+  previousView: 'menu',
 
   dom: {
     startScreen: document.getElementById('start-screen'),
@@ -532,6 +539,7 @@ const app = {
     jumpGrid: document.getElementById('jump-grid'),
     bgmIcon: document.getElementById('bgm-icon'),
     appStartBtn: document.getElementById('btn-app-start'),
+    backBtn: document.getElementById('back-btn'),
   },
 
   // オーディオ機能 (Web Audio API)
@@ -730,6 +738,7 @@ const app = {
     this.dom.progress.style.width = '0%';
     this.dom.quizList.innerHTML = ''; 
     this.dom.jumpBtn.style.display = 'none';
+    this.dom.backBtn.style.display = 'none';
     window.scrollTo(0,0);
   },
 
@@ -761,6 +770,8 @@ const app = {
 
     if(targetQuestions.length === 0) return alert('該当する問題がありません');
     
+    this.previousView = fromList ? 'list' : 'menu';
+
     // 音声再生ロジック (問題がある場合のみ実行)
     if (fromList) {
         this.audio.playClick(); // リストからの場合はシステム決定音
@@ -784,6 +795,7 @@ const app = {
     this.dom.quizList.style.display = 'block';
     this.dom.choiceArea.style.display = 'block';
     this.dom.jumpBtn.style.display = 'block';
+    this.dom.backBtn.style.display = 'block';
   },
 
   showPerfectView: function() {
@@ -1140,6 +1152,8 @@ const app = {
     this.dom.answerListView.style.display = 'block';
     
     this.dom.jumpBtn.style.display = 'none';
+    this.dom.backBtn.style.display = 'block';
+    this.previousView = 'menu';
 
     this.renderAnswerList();
     window.scrollTo(0,0);
@@ -1234,6 +1248,22 @@ const app = {
 
   jumpFromList: function(index) {
     this.start('ALL', index, true);
+  },
+
+  handleBack: function() {
+    if (this.dom.quizList.style.display === 'block') {
+        // 演習中
+        if(confirm('演習を中断して戻りますか？')) {
+            if (this.previousView === 'list') {
+                this.showAnswerList();
+            } else {
+                this.resetView();
+            }
+        }
+    } else {
+        // その他（解答一覧など）
+        this.resetView();
+    }
   }
 };
 
