@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>産業財産権 学習アプリ v1.05</title>
+  <title>産業財産権 学習アプリ v1.06</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,8 +32,8 @@
       -webkit-user-select: none;
       padding-bottom: env(safe-area-inset-bottom);
       height: 100vh;
-      overflow: hidden; 
-      touch-action: manipulation;
+      overflow: hidden;
+      touch-action: manipulation; /* タッチ反応速度向上 */
     }
     .app-container {
       max-width: 800px;
@@ -45,7 +45,7 @@
       overflow-y: auto;
     }
 
-    /* --- スタート画面 --- */
+    /* --- スタート画面 (明るめデザイン) --- */
     #start-screen {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -62,21 +62,21 @@
     }
     .title-logo {
       font-family: 'Zen Antique', serif;
-      font-size: 56px;
+      font-size: 52px;
       margin-bottom: 20px;
       text-align: center;
       letter-spacing: 0.1em;
-      color: #000;
-      text-shadow: 2px 2px 0px #ddd;
+      color: #333;
+      text-shadow: 2px 2px 0px #eee;
       line-height: 1.2;
     }
     .version-text {
       font-family: sans-serif;
       font-size: 16px;
       color: #888;
-      margin-bottom: 60px;
-      font-weight: bold;
+      margin-bottom: 50px;
       letter-spacing: 0.1em;
+      font-weight: bold;
     }
     .start-btn-large {
       font-family: 'Zen Antique', serif;
@@ -87,12 +87,13 @@
       color: #fff;
       border: none;
       cursor: pointer;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
       transition: transform 0.1s;
+      letter-spacing: 0.1em;
       -webkit-tap-highlight-color: transparent;
     }
     .start-btn-large:active {
-      transform: scale(0.95);
+      transform: scale(0.96);
       background: #555;
     }
 
@@ -111,27 +112,23 @@
       height: 50px;
       flex-shrink: 0;
     }
-    .jump-btn {
-      font-size: 14px; color: var(--primary); background: none;
-      border: 1px solid var(--primary); border-radius: 4px; padding: 4px 8px;
-      font-weight: bold; cursor: pointer; width: 60px; display: none;
-    }
     h1 {
       margin: 0; font-size: 18px; color: var(--text);
       font-family: 'Zen Antique', serif; font-weight: bold; margin-right: 10px;
     }
-    .home-btn {
+    .home-btn, .jump-btn {
       font-size: 14px; color: var(--primary); background: none; border: none;
       font-weight: bold; cursor: pointer; width: 60px; text-align: right;
     }
+    .jump-btn { border: 1px solid var(--primary); border-radius: 4px; padding: 4px 0; text-align: center; display: none; }
+    
     .bgm-icon {
         font-size: 10px; color: #999; margin-right: 5px;
         border: 1px solid #ccc; padding: 2px 6px; border-radius: 10px; cursor: pointer;
     }
     .bgm-icon.active { background: #e0f0ff; color: var(--primary); border-color: var(--primary); }
-    .progress-bar-container {
-      position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: #E5E5EA;
-    }
+    
+    .progress-bar-container { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: #E5E5EA; }
     .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.3s; }
 
     /* --- メニュー --- */
@@ -139,20 +136,17 @@
     .section-title { font-size: 14px; color: #8E8E93; font-weight: bold; margin-bottom: 5px; margin-left: 5px; }
     
     .menu-btn, .chapter-btn {
-      background: var(--card-bg); padding: 15px; border-radius: 12px;
+      background: var(--card-bg); padding: 18px; border-radius: 12px;
       font-size: 16px; font-weight: bold; color: var(--primary);
       text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      cursor: pointer; -webkit-tap-highlight-color: transparent;
+      cursor: pointer; margin-bottom: 10px; -webkit-tap-highlight-color: transparent;
     }
-    .chapter-btn { color: #333; font-size: 15px; }
+    .chapter-btn { padding: 15px; font-size: 15px; color: #333; margin-bottom: 0; }
     .chapter-btn span { display: block; font-size: 12px; color: #8E8E93; margin-top: 4px; font-weight: normal; }
     .menu-btn:active, .chapter-btn:active { transform: scale(0.98); background: #f0f0f0; }
     .chapter-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-
-    .reset-data-btn {
-      margin-top: 30px; font-size: 12px; color: #999; text-align: center;
-      padding: 10px; background: none; border: 1px dashed #ccc; border-radius: 8px; cursor: pointer;
-    }
+    
+    .reset-data-btn { margin-top: 30px; font-size: 12px; color: #999; text-align: center; padding: 10px; background: none; border: 1px dashed #ccc; border-radius: 8px; cursor: pointer; }
 
     /* --- クイズエリア --- */
     #quiz-list { display: none; padding: 15px; padding-bottom: 300px; }
@@ -185,7 +179,6 @@
     .slot.correct { background: #d4f8d4; border-color: var(--success); color: #006400; }
     .slot.wrong { background: #ffebeb; border-color: var(--error); color: var(--error); }
     .slot.modified { background: #fff8e1; border-color: var(--warning); color: #d35400; }
-
     .edit-ans-btn { margin-left: 8px; font-size: 11px; background: #eee; border: 1px solid #ccc; color: #333; padding: 3px 8px; border-radius: 4px; cursor: pointer; vertical-align: middle; }
 
     .choice-area {
@@ -207,13 +200,10 @@
       cursor: pointer; box-shadow: 0 4px 10px rgba(0,122,255,0.3); -webkit-tap-highlight-color: transparent;
     }
     .action-btn:disabled { background: #C7C7CC; box-shadow: none; }
-    .action-btn.next { background: var(--success); display: none; box-shadow: 0 4px 10px rgba(52,199,89,0.3); opacity: 1 !important; }
+    .action-btn.next { background: var(--success) !important; color: white !important; display: none; box-shadow: 0 4px 10px rgba(52,199,89,0.3); opacity: 1 !important; }
 
     /* エフェクト */
-    .overlay-effect {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;
-      display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity 0.3s;
-    }
+    .overlay-effect { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: opacity 0.3s; }
     .mark { font-size: 150px; font-weight: 900; transform: scale(0); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
     .mark.circle { color: var(--success); border: 10px solid var(--success); border-radius: 50%; width: 200px; height: 200px; display: flex; align-items: center; justify-content: center; }
     .mark.cross { color: var(--error); font-size: 250px; line-height: 0; }
@@ -225,10 +215,7 @@
     @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
 
     /* ジャンプモーダル */
-    .jump-modal {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000;
-      display: none; align-items: center; justify-content: center; padding: 20px;
-    }
+    .jump-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
     .jump-content { background: white; border-radius: 16px; width: 100%; max-width: 400px; max-height: 80vh; display: flex; flex-direction: column; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     .jump-header { padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; font-weight: bold; color: #333; }
     .jump-close { font-size: 24px; color: #999; cursor: pointer; background: none; border: none; }
@@ -246,9 +233,6 @@
     .ans-q-text { font-weight: bold; margin-bottom: 8px; font-size: 15px; white-space: pre-wrap; line-height: 1.6; }
     .ans-correct { color: #006400; background: #d4f8d4; padding: 5px 10px; border-radius: 4px; font-size: 13px; display: inline-block; }
     .ans-controls { margin-top: 10px; display: flex; gap: 10px; justify-content: flex-end; }
-    .small-btn { font-size: 12px; padding: 6px 12px; border-radius: 15px; border: 1px solid #ccc; background: #f9f9f9; cursor: pointer; color: #333; }
-    .small-btn.primary { background: var(--primary); color: white; border: none; }
-    .small-btn.edit { color: var(--primary); border-color: var(--primary); background: white; }
     .edit-label { font-size: 12px; color: #666; margin-top: 8px; margin-bottom: 4px; display: block; font-weight: bold; }
     .edit-input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
 
@@ -257,17 +241,15 @@
     .perfect-img { width: 180px; height: auto; margin-bottom: 20px; }
     .perfect-text { font-family: "Snell Roundhand", "Brush Script MT", cursive; font-size: 48px; background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: bold; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); margin-bottom: 10px; }
 
-    /* フラグボタン */
     .flag-btn { font-size: 24px; color: #ccc; cursor: pointer; background: none; border: none; transition: color 0.2s; padding: 0 5px; }
     .flag-btn.active { color: #FFD700; text-shadow: 0 0 2px orange; }
-
   </style>
 </head>
 <body>
 
 <div id="start-screen">
   <div class="title-logo">産業財産権</div>
-  <div class="version-text">Version 1.05</div>
+  <div class="version-text">Version 1.06</div>
   <button class="start-btn-large" id="btn-app-start">START</button>
 </div>
 
@@ -358,23 +340,17 @@
     </div>
   </div>
 
-  <audio id="bgm" loop preload="auto">
-    <source src="そばにいるよ.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="se-click" preload="auto">
-    <source src="システム決定音_12.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="se-start" preload="auto">
-    <source src="hikakin-yarimashiyou.mp3" type="audio/mpeg">
-  </audio>
-
+  <audio id="bgm" loop preload="auto"><source src="そばにいるよ.mp3" type="audio/mpeg"></audio>
+  <audio id="se-click" preload="auto"><source src="システム決定音_12.mp3" type="audio/mpeg"></audio>
+  <audio id="se-start" preload="auto"><source src="hikakin-yarimashiyou.mp3" type="audio/mpeg"></audio>
 </div>
 
 <script>
 // ==========================================
-// データ定義 (v1.05)
+// データ定義 (v1.06: 完全版)
 // ==========================================
-const defaultData = [
+// 過去の破損データを回避するため、変数名を再定義
+const questionsMaster = [
   [1,"選択肢","【1】 技術を保護するのが (特許) 法および(実用新案) 法であり、デザインを保護するのが(意匠) 法であり、絵画や音楽を保護するのが (著作権) 法であり、商品に表示する名前やマークを保護するのが(商標) 法である 。","特許,実用新案,意匠,著作権,商標","民法","発明法","標章法"],
   [1,"〇×","【2】 どの国にも権利の効力が及ぶ単一の特許権が存在する (×) ","×","","",""],
   [1,"〇×","【3】 バリ条約は、特許のみに適用される条約である (×) ","×","","",""],
@@ -558,7 +534,7 @@ const app = {
     appStartBtn: document.getElementById('btn-app-start'),
   },
 
-  // オーディオ機能（爆速化チューニング済み）
+  // オーディオ機能 (Web Audio API)
   audio: {
       bgm: null,
       click: null,
@@ -575,7 +551,6 @@ const app = {
           
           if(this.bgm) this.bgm.volume = 0.2; 
 
-          // Web Audio API
           try {
               window.AudioContext = window.AudioContext || window.webkitAudioContext;
               this.context = new AudioContext();
@@ -603,8 +578,10 @@ const app = {
           document.addEventListener('visibilitychange', () => {
               if (document.hidden) {
                   if(this.bgm) this.bgm.pause();
+                  if(this.context && this.context.state === 'running') this.context.suspend();
               } else {
                   if(this.isBgmOn) this.playBGM();
+                  if(this.context && this.context.state === 'suspended') this.context.resume();
               }
           });
       },
@@ -671,15 +648,18 @@ const app = {
       }
   },
 
-  // --- 初期化 ---
   init: function() {
-    // 起動時にエラーが出ても止まらないようにtry-catch
+    // エラーハンドリング
+    window.onerror = function(msg, url, line) {
+        alert("エラーが発生しました: " + msg);
+    };
+
     try {
         this.audio.init();
     } catch(e) { console.log(e); }
 
     // データ読み込み (v105)
-    const savedData = localStorage.getItem('chizai_app_data_v105_fixed'); 
+    const savedData = localStorage.getItem('chizai_app_data_v105_final'); 
     if (savedData) {
       try {
         this.questions = JSON.parse(savedData);
@@ -709,7 +689,7 @@ const app = {
   },
 
   saveToStorage: function() {
-    localStorage.setItem('chizai_app_data_v105_fixed', JSON.stringify(this.questions));
+    localStorage.setItem('chizai_app_data_v105_final', JSON.stringify(this.questions));
   },
   
   saveFlags: function() {
@@ -726,7 +706,7 @@ const app = {
 
   resetAllData: function() {
     if(confirm("【警告】\nすべての編集・修正データを削除し、初期状態に戻します。\nよろしいですか？")) {
-      localStorage.removeItem('chizai_app_data_v105_fixed'); 
+      localStorage.removeItem('chizai_app_data_v105_final'); 
       alert("データをリセットしました。");
       location.reload();
     }
