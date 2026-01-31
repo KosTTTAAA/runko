@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>産業財産権 学習アプリケーション v1.06</title>
+  <title>産業財産権 学習アプリ v1.06</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -733,14 +733,7 @@ const app = {
     window.scrollTo(0,0);
   },
 
-  start: function(mode, startIndex = 0) {
-    // 演習開始時のみHikakinボイス再生
-    if (['ALL', 'TEST', 'CH1', 'CH2', 'CH3', 'CH4', 'CH5', '選択肢', '〇×'].includes(mode) || mode.startsWith('REVIEW')) {
-        this.audio.playStartVoice();
-    } else {
-        this.audio.playClick();
-    }
-
+  start: function(mode, startIndex = 0, fromList = false) {
     let targetQuestions = [];
     if (mode === 'ALL') {
       targetQuestions = this.questions; 
@@ -768,6 +761,15 @@ const app = {
 
     if(targetQuestions.length === 0) return alert('該当する問題がありません');
     
+    // 音声再生ロジック (問題がある場合のみ実行)
+    if (fromList) {
+        this.audio.playClick(); // リストからの場合はシステム決定音
+    } else if (['ALL', 'TEST', 'CH1', 'CH2', 'CH3', 'CH4', 'CH5', '選択肢', '〇×'].includes(mode) || mode.startsWith('REVIEW')) {
+        this.audio.playStartVoice(); // 演習開始時はHikakinボイス
+    } else {
+        this.audio.playClick();
+    }
+
     this.sessionQuestions = targetQuestions; 
     this.currentIndex = startIndex;
     this.renderedCount = 0;
@@ -1231,7 +1233,7 @@ const app = {
   },
 
   jumpFromList: function(index) {
-    this.start('ALL', index);
+    this.start('ALL', index, true);
   }
 };
 
