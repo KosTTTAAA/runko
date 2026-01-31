@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>産業財産権 学習アプリ v1.060</title>
+  <title>産業財産権 学習アプリ v1.06</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -572,7 +572,10 @@ const app = {
           const startBtn = document.getElementById('btn-app-start');
           if(startBtn) {
               startBtn.addEventListener('touchstart', unlock, {passive: true});
-              startBtn.addEventListener('click', unlock);
+              startBtn.addEventListener('click', () => {
+                  unlock();
+                  app.enterApp();
+              });
           }
 
           document.addEventListener('visibilitychange', () => {
@@ -664,14 +667,14 @@ const app = {
       try {
         this.questions = JSON.parse(savedData);
       } catch(e) {
-        this.questions = JSON.parse(JSON.stringify(defaultData)); 
+                this.questions = JSON.parse(JSON.stringify(questionsMaster)); 
       }
       const savedFlags = localStorage.getItem('chizai_app_flags');
       if (savedFlags) {
         this.flags = JSON.parse(savedFlags);
       }
     } else {
-      this.questions = JSON.parse(JSON.stringify(defaultData)); 
+              this.questions = JSON.parse(JSON.stringify(questionsMaster)); 
       this.saveToStorage(); 
     }
   },
